@@ -1,0 +1,32 @@
+version: '1.1'
+services:
+  user_management:
+    build:
+      context: .
+      dockerfile: "./apps/user/Dockerfile"
+      target: development
+    command: ["npm", "run", "start:dev"]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ".:/usr/src/app"
+    networks:
+      - parking_network
+  iConnect_database:
+    image: mysql:8.1
+    command: --default-authentication-plugin=caching_sha2_password
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+    container_name: iConnect_database
+    volumes:
+      - parking_db:/var/lib/mysql
+      - ./sql/initialize.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - '3307:3306'
+    networks:
+      - parking_network
+volumes:
+  parking_db:
+networks:
+  parking_network:
