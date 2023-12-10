@@ -28,33 +28,33 @@ We hope you will be happy to use this API to work on your task.
 ## Installation
 
 ```bash
-$ bun install
+$ npm install
 ```
 
 ## Running the app
 
 ```bash
 # development
-$ bun run start
+$ npm run start
 
 # watch mode
-$ bun run start:dev
+$ npm run start:dev
 
 # production mode
-$ bun run start:prod
+$ npm run start:prod
 ```
 
 ## Test
 
 ```bash
 # unit tests
-$ bun run test
+$ npm run test
 
 # e2e tests
-$ bun run test:e2e
+$ npm run test:e2e
 
 # test coverage
-$ bun run test:cov
+$ npm run test:cov
 ```
 
 ## Stay in touch
