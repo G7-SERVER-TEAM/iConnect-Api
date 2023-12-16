@@ -1,0 +1,5 @@
+[
+  { "role_name": "Casual", "acls": [1, 2, 3] },
+  { "role_name": "Officer", "acls": [1, 2, 4, 5] },
+  { "role_name": "Owner", "acls": [1, 2, 4, 5] }
+]
