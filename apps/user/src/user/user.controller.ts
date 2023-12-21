@@ -12,7 +12,11 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Public } from '../../../auth/src/auth/decorators/public.decorator';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../../auth/src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -49,7 +53,7 @@ export class UserController {
     return res;
   }
 
-  // @Public()
+  @Public()
   @ApiResponse({
     status: 200,
     description: 'The profile has been successfully created.',

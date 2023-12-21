@@ -5,13 +5,31 @@ services:
       context: .
       dockerfile: "./apps/user/Dockerfile"
       target: development
-    command: ["npm", "run", "start:dev"]
+    command: ["npm", "run", "start:dev", "user"]
+    container_name: user_service
+    env_file:
+      - ./apps/.env
     ports:
       - "8080:8080"
     volumes:
       - ".:/usr/src/app"
     networks:
-      - parking_network
+      - iConnect_network
+  auth_service:
+    build:
+      context: .
+      dockerfile: "./apps/auth/Dockerfile"
+      target: development
+    command: ["npm", "run", "start:dev", "auth"]
+    container_name: auth_service
+    env_file:
+      - ./apps/.env
+    ports:
+      - "8081:8081"
+    volumes:
+      - ".:/usr/src/app"
+    networks:
+      - iConnect_network
   iConnect_database:
     image: mysql:8.1
     command: --default-authentication-plugin=caching_sha2_password
@@ -20,13 +38,13 @@ services:
       - MYSQL_ROOT_PASSWORD=root
     container_name: iConnect_database
     volumes:
-      - parking_db:/var/lib/mysql
+      - iConnect_db:/var/lib/mysql
       - ./sql/initialize.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - '3307:3306'
     networks:
-      - parking_network
+      - iConnect_network
 volumes:
-  parking_db:
+  iConnect_db:
 networks:
-  parking_network:
+  iConnect_network:

@@ -6,4 +6,4 @@ import { AclModule } from '../../../../apps/user/src/acl/acl.module';
 @Module({
   imports: [UserModule, RoleModule, AclModule],
 })
-export class AppModule {}
+export class UserInformationModule {}

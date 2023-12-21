@@ -3,6 +3,8 @@ FROM node:16-alpine as development
 
 WORKDIR /usr/src/app
 
+RUN rm -rf node_modules
+
 COPY package.json package-lock.json ./
 
 RUN npm install -g && npm install
@@ -28,4 +30,4 @@ COPY --from=development /usr/src/app/dist ./dist
 
 COPY --from=development /usr/src/app/package.json ./package.json
 
-CMD [ "node", "dist/apps/user/main" ]
+CMD [ "node", "dist/apps/auth/main" ]
