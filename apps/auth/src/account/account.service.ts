@@ -34,7 +34,10 @@ export class AccountService {
   @Public()
   async create(
     newAccount: CreateAccountDto,
-  ): Promise<Account | { statusCode: number; message: string }> {
+  ): Promise<
+    | { statusCode: number; id: number; username: string; access_token: string }
+    | { statusCode: number; message: string }
+  > {
     const existingUser = await this.findByUsername(newAccount.username);
 
     if (existingUser) {
@@ -46,7 +49,7 @@ export class AccountService {
 
     try {
       const hashPassword = createHash('sha256')
-        .update(newAccount.password)
+        .update(newAccount.password + process.env.ENCRYPT_SALT)
         .digest('hex');
 
       const account: Account = new Account();
@@ -58,7 +61,14 @@ export class AccountService {
       const payload = { sub: account.uid, username: account.username };
       account.access_token = await this.jwtService.signAsync(payload);
 
-      return await this.accountRepository.save(account);
+      await this.accountRepository.save(account);
+
+      return {
+        statusCode: 201,
+        id: account.account_id,
+        username: account.username,
+        access_token: account.access_token,
+      };
     } catch (error) {
       console.error(error);
       return {
@@ -81,9 +91,8 @@ export class AccountService {
     updateAccount: UpdateAccountDto,
   ): Promise<Account | JSON> {
     try {
-      const hash = createHash('sha256');
-      const hashPassword = await hash
-        .update(updateAccount.password)
+      const hashPassword = createHash('sha256')
+        .update(updateAccount.password + process.env.ENCRYPT_SALT)
         .digest('hex');
 
       const account: Account = new Account();

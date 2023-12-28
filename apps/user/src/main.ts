@@ -15,12 +15,14 @@ async function bootstrap() {
     .setDescription('This is a list of user module.')
     .setVersion('1.0.0')
     .addTag('User')
+    .addBearerAuth()
     .build();
 
   const roleOptions = new DocumentBuilder()
     .setTitle('Role Module.')
     .setDescription('This is a list of role module.')
     .setVersion('1.0.0')
+    .addBearerAuth()
     .addTag('Role')
     .build();
 
@@ -28,6 +30,7 @@ async function bootstrap() {
     .setTitle('ACLs Module.')
     .setDescription('This is a list of acls module.')
     .setVersion('1.0.0')
+    .addBearerAuth()
     .addTag('ACLs')
     .build();
 

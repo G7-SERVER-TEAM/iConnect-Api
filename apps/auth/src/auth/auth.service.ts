@@ -25,7 +25,7 @@ export class AuthService {
       await this.accountService.findByUsername(username);
     const passwordIsValid = await (crypto
       .createHash('sha256')
-      .update(pass)
+      .update(pass + process.env.ENCRYPT_SALT)
       .digest('hex') === account?.password);
 
     if (!account || !passwordIsValid) {

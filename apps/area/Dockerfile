@@ -5,9 +5,9 @@ WORKDIR /usr/src/app
 
 COPY package.json package-lock.json ./
 
-COPY . .
-
 RUN npm install -g && npm install
+
+COPY . .
 
 RUN npm run build
 
@@ -28,4 +28,4 @@ COPY --from=development /usr/src/app/dist ./dist
 
 COPY --from=development /usr/src/app/package.json ./package.json
 
-CMD [ "node", "dist/apps/auth/main" ]
+CMD [ "node", "dist/apps/user/main" ]

@@ -30,6 +30,20 @@ services:
       - ".:/usr/src/app"
     networks:
       - iConnect_network
+  area_service:
+    build:
+      context: .
+      dockerfile: ./apps/area/Dockerfile
+    command: ["npm", "run", "start:dev", "area"]
+    container_name: area_service
+    env_file:
+      - ./apps/.env
+    ports:
+      - 8082:8082
+    volumes:
+      - .:/usr/src/app
+    networks:
+      - iConnect_network
   iConnect_database:
     image: mysql:8.1
     command: --default-authentication-plugin=caching_sha2_password

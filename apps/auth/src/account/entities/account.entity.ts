@@ -1,11 +1,11 @@
 import {
   PrimaryGeneratedColumn,
   Column,
-  // OneToOne,
-  // JoinColumn,
+  OneToOne,
+  JoinColumn,
   Entity,
 } from 'typeorm';
-// import { User } from '../../../../user/src/user/entities/user.entity';
+import { User } from '../../../../user/src/user/entities/user.entity';
 
 @Entity()
 export class Account {
@@ -24,8 +24,7 @@ export class Account {
   @Column({ type: 'varchar' })
   access_token: string;
 
-  @Column({ type: 'int' })
-  // @OneToOne(() => User, (User) => User.uid, { cascade: true })
-  // @JoinColumn({ name: 'uid' })
+  @OneToOne(() => User, (User) => User.uid, { cascade: true })
+  @JoinColumn({ name: 'uid' })
   uid: number;
 }
