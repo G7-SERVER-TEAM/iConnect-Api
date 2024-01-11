@@ -1,0 +1,12 @@
+{
+  "auth": ["auth.sign.in", "auth.sign.up", "auth.grant.token"],
+  "action": [
+    "action.home",
+    "action.news",
+    "action.notification",
+    "action.history",
+    "action.scan",
+    "action.track"
+  ],
+  "profile": ["profile.view", "profile.update", "profile.delete"]
+}
