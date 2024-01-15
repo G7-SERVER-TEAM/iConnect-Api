@@ -1,0 +1,51 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: user_service
+  namespace: default
+  labels:
+    app: iConnect_Api
+spec:
+  selector:
+    app: iConnect_Api
+    tier: user_service
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
+  ports:
+    - port: 8080
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user_service
+  labels:
+    app: iConnect_Api
+spec:
+  selector:
+    matchLabels:
+      app: iConnect_Api
+      tier: user_service
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      labels:
+        app: iConnect_Api
+        tier: user_service
+  spec:
+    containers:
+      - image: <image>
+        name: user_service
+        ports:
+          - containerPort: 8080
+            name: user_service
+        resources:
+          request:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory:: "64Mi"
+            cpu: "500m"

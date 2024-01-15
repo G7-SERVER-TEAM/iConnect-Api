@@ -1,18 +1,17 @@
 import { DynamicModule, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { EntityClassOrSchema } from '@nestjs/typeorm/dist/interfaces/entity-class-or-schema.type';
-import { config } from './db.config';
 import { DataSource, DataSourceOptions } from 'typeorm/data-source';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot({
       type: 'mysql',
-      host: config.host,
-      port: config.port,
-      username: config.username,
-      password: config.password,
-      database: config.database,
+      host: process.env.host,
+      port: parseInt(process.env.port),
+      username: process.env.username,
+      password: process.env.password,
+      database: process.env.database,
       synchronize: true,
       autoLoadEntities: true,
     }),
