@@ -1,5 +1,30 @@
 [
-  { "role_name": "Casual", "acls": [1, 2, 3] },
-  { "role_name": "Officer", "acls": [1, 2, 4, 5] },
-  { "role_name": "Owner", "acls": [1, 2, 4, 5] }
+  {
+    "role_name": "User",
+    "acls": {
+      "auth": [
+        "auth.sign-in",
+        "auth.sign-up",
+        "auth.grant-token",
+        "auth.create-account"
+      ],
+      "action": [
+        "action.home",
+        "action.news",
+        "action.notification",
+        "action.history",
+        "action.scan",
+        "action.track",
+        "action.view-status"
+      ],
+      "profile": [
+        "profile.view",
+        "profile.update",
+        "profile.delete",
+        "profile.create"
+      ]
+    }
+  },
+  { "role_name": "Officer", "acls": {} },
+  { "role_name": "Owner", "acls": {} }
 ]

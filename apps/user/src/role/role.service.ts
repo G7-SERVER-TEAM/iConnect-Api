@@ -11,12 +11,18 @@ export class RoleService {
   constructor(
     @InjectRepository(Role) private readonly roleRepository: Repository<Role>,
   ) {
-    this.roleRepository
-      .createQueryBuilder()
-      .insert()
-      .into(Role)
-      .values(data)
-      .execute();
+    let isNotExists = false;
+    this.findAll().then((result) => {
+      isNotExists = result.length === 0;
+      if (isNotExists) {
+        this.roleRepository
+          .createQueryBuilder('role')
+          .insert()
+          .into(Role)
+          .values(data)
+          .execute();
+      }
+    });
   }
 
   findAll(): Promise<Role[]> {

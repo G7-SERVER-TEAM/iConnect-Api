@@ -3,10 +3,10 @@ import { UserModule } from './user/user.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { RoleModule } from './role/role.module';
 import { AclModule } from './acl/acl.module';
-import { AppModule } from '../../../libs/common/src/app/app.module';
+import { UserInformationModule } from '../../../libs/common/src/app/info.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(UserInformationModule);
 
   app.enableCors();
 
@@ -15,12 +15,14 @@ async function bootstrap() {
     .setDescription('This is a list of user module.')
     .setVersion('1.0.0')
     .addTag('User')
+    .addBearerAuth()
     .build();
 
   const roleOptions = new DocumentBuilder()
     .setTitle('Role Module.')
     .setDescription('This is a list of role module.')
     .setVersion('1.0.0')
+    .addBearerAuth()
     .addTag('Role')
     .build();
 
@@ -28,6 +30,7 @@ async function bootstrap() {
     .setTitle('ACLs Module.')
     .setDescription('This is a list of acls module.')
     .setVersion('1.0.0')
+    .addBearerAuth()
     .addTag('ACLs')
     .build();
 

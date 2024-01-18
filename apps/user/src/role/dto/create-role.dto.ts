@@ -1,20 +1,20 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty } from '@nestjs/swagger';
 import {
   IsString,
   IsArray,
   IsNotEmpty,
   MinLength,
   MaxLength,
-} from "class-validator";
+} from 'class-validator';
 
 export class CreateRoleDto {
   @ApiProperty({
-    example: "Business Analysis",
+    example: 'Business Analysis',
     required: true,
   })
   @IsString()
   @IsNotEmpty()
-  @MinLength(2, { message: "Role name must has at least 2 characters." })
+  @MinLength(2, { message: 'Role name must has at least 2 characters.' })
   @MaxLength(30)
   role_name: string;
 
@@ -23,5 +23,5 @@ export class CreateRoleDto {
     required: true,
   })
   @IsArray()
-  acls: number[];
+  acls: JSON;
 }

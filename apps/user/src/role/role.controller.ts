@@ -6,31 +6,33 @@ import {
   Patch,
   Param,
   Delete,
-  HttpCode,
-} from "@nestjs/common";
-import { RoleService } from "./role.service";
-import { CreateRoleDto } from "./dto/create-role.dto";
-import { UpdateRoleDto } from "./dto/update-role.dto";
-import { Role } from "./entities/role.entity";
-import { ApiBody, ApiResponse } from "@nestjs/swagger";
+} from '@nestjs/common';
+import { RoleService } from './role.service';
+import { CreateRoleDto } from './dto/create-role.dto';
+import { UpdateRoleDto } from './dto/update-role.dto';
+import { Role } from './entities/role.entity';
+import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { AuthGuard } from '../../../auth/src/auth/auth.guard';
+import { UseGuards } from '@nestjs/common';
 
-@Controller("role")
+@UseGuards(AuthGuard)
+@Controller('role')
 export class RoleController {
   constructor(private readonly roleService: RoleService) {}
 
   @ApiResponse({
     status: 200,
-    description: "OK.",
+    description: 'OK.',
   })
   @ApiResponse({
     status: 403,
-    description: "Forbidden.",
+    description: 'Forbidden.',
   })
   @Get()
   async findAll() {
     const res: JSON = <JSON>(<unknown>{
       status: 200,
-      message: "success",
+      message: 'success',
       result: await this.roleService.findAll(),
     });
     return res;
@@ -38,19 +40,19 @@ export class RoleController {
 
   @ApiResponse({
     status: 200,
-    description: "OK.",
+    description: 'OK.',
   })
   @ApiResponse({
     status: 403,
-    description: "Forbidden.",
+    description: 'Forbidden.',
   })
-  @Get("/id/:id")
-  async findOne(@Param("id") id: string) {
+  @Get('/id/:id')
+  async findOne(@Param('id') id: string) {
     const role: Role | null = await this.roleService.findById(+id);
     const res: JSON = <JSON>(<unknown>{
       status: 200,
-      message: "success",
-      findBy: "id",
+      message: 'success',
+      findBy: 'id',
       result: role != null ? role : [],
     });
     return res;
@@ -58,20 +60,20 @@ export class RoleController {
 
   @ApiResponse({
     status: 201,
-    description: "This role has been successfully created.",
+    description: 'This role has been successfully created.',
   })
   @ApiResponse({
     status: 403,
-    description: "Forbidden.",
+    description: 'Forbidden.',
   })
   @ApiBody({
     type: CreateRoleDto,
   })
-  @Post("/create")
+  @Post('/create')
   async create(@Body() createRoleDto: CreateRoleDto) {
     const res: JSON = <JSON>(<unknown>{
       status: 201,
-      message: "success",
+      message: 'success',
       result: await this.roleService.createNewRole(createRoleDto),
     });
     return res;
@@ -79,21 +81,21 @@ export class RoleController {
 
   @ApiResponse({
     status: 204,
-    description: "This role has been successfully updated.",
+    description: 'This role has been successfully updated.',
   })
   @ApiResponse({
     status: 403,
-    description: "Forbidden.",
+    description: 'Forbidden.',
   })
   @ApiBody({
     type: UpdateRoleDto,
   })
-  @Patch("/update/:id")
-  async update(@Param("id") id: string, @Body() updateRoleDto: UpdateRoleDto) {
+  @Patch('/update/:id')
+  async update(@Param('id') id: string, @Body() updateRoleDto: UpdateRoleDto) {
     const res: JSON = <JSON>(<unknown>{
       status: 204,
-      message: "success",
-      findBy: "id",
+      message: 'success',
+      findBy: 'id',
       result: await this.roleService.updateRole(+id, updateRoleDto),
     });
     return res;
@@ -101,18 +103,18 @@ export class RoleController {
 
   @ApiResponse({
     status: 200,
-    description: "This role has been successfully deleted.",
+    description: 'This role has been successfully deleted.',
   })
   @ApiResponse({
     status: 403,
-    description: "Forbidden.",
+    description: 'Forbidden.',
   })
-  @Delete("/delete/:id")
-  async remove(@Param("id") id: string) {
+  @Delete('/delete/:id')
+  async remove(@Param('id') id: string) {
     const res: JSON = <JSON>(<unknown>{
       status: 200,
-      message: "success",
-      findBy: "id",
+      message: 'success',
+      findBy: 'id',
       result: await this.roleService.deleteRole(+id),
     });
     return res;

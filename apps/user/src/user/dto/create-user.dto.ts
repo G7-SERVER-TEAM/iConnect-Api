@@ -54,6 +54,12 @@ export class CreateUserDto {
   phone_number: string;
 
   @ApiProperty({
+    example: '1: Central World',
+  })
+  @IsNumber()
+  area: number;
+
+  @ApiProperty({
     example: '1: casual | 2: officer | 3: owner',
     required: true,
   })

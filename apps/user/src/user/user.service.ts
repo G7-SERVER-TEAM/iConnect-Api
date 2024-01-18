@@ -4,7 +4,11 @@ import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../../auth/src/auth/auth.guard';
+import { Public } from '../../../auth/src/auth/decorators/public.decorator';
 
+@UseGuards(AuthGuard)
 @Injectable()
 export class UserService {
   constructor(
@@ -19,9 +23,10 @@ export class UserService {
     return this.userRepository.findOneBy({ uid });
   }
 
+  @Public()
   async createUserProfile(newUser: CreateUserDto): Promise<User | JSON> {
     const user: User = new User();
-    // user.role_id = newUser.role_id;
+    user.role_id = newUser.role_id;
     user.name = newUser.name;
     user.surname = newUser.surname;
     user.birth_date = newUser.birth_date;
@@ -47,9 +52,9 @@ export class UserService {
       (await this.userRepository.findOneBy({ uid }))!.birth_date;
     user.email =
       updateUser.email || (await this.userRepository.findOneBy({ uid }))!.email;
-    // user.role_id =
-    //   updateUser.role_id ||
-    //   (await this.userRepository.findOneBy({ uid }))!.role_id;
+    user.role_id =
+      updateUser.role_id ||
+      (await this.userRepository.findOneBy({ uid }))!.role_id;
     return this.userRepository.save(user);
   }
 

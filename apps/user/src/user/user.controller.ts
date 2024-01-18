@@ -11,8 +11,12 @@ import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { ApiBody, ApiResponse } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
+import { Public } from '../../../auth/src/auth/decorators/public.decorator';
+import { UseGuards } from '@nestjs/common';
+import { AuthGuard } from '../../../auth/src/auth/auth.guard';
 
+@UseGuards(AuthGuard)
 @Controller('user')
 export class UserController {
   constructor(private readonly userService: UserService) {}
@@ -22,6 +26,7 @@ export class UserController {
     description: 'OK.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
   @Get()
   async findAllUser() {
     const res: JSON = <JSON>(<unknown>{
@@ -37,6 +42,7 @@ export class UserController {
     description: 'OK.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
   @Get('/id/:uid')
   async findByUID(@Param('uid') uid: string) {
     const user: User | null = await this.userService.findByUID(+uid);
@@ -49,12 +55,13 @@ export class UserController {
     return res;
   }
 
-  // @Public()
+  @Public()
   @ApiResponse({
     status: 200,
     description: 'The profile has been successfully created.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
   @ApiBody({
     type: CreateUserDto,
   })
@@ -76,6 +83,7 @@ export class UserController {
   @ApiBody({
     type: UpdateUserDto,
   })
+  @ApiBearerAuth()
   @Patch('/profile/update/:uid')
   async updateProfile(
     @Param('uid') uid: string,
@@ -95,6 +103,7 @@ export class UserController {
     description: 'The profile has been successfully deleted.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
   @Delete('/profile/delete/:uid')
   async removeProfile(@Param('uid') uid: string) {
     const res: JSON = <JSON>(<unknown>{

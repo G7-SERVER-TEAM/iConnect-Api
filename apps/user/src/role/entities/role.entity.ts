@@ -9,5 +9,5 @@ export class Role {
   role_name: string;
 
   @Column('json')
-  acls: number[];
+  acls: JSON;
 }
