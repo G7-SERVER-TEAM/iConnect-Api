@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, Matches } from 'class-validator';
+import { IsEmail, IsStrongPassword, Matches } from 'class-validator';
 
 const passwordRegEx =
   /^(?=.*[a-z])(?=.*[A-Z])(?=.*d)(?=.*[@$!%*?&])[A-Za-zd@$!%*?&]{8,20}$/;
@@ -15,6 +15,7 @@ export class SignInWithEmailDto {
     example: 'P@ssw0rd',
     required: true,
   })
+  @IsStrongPassword()
   @Matches(passwordRegEx, {
     message: `Password must contain Minimum 8 and maximum 20 characters, 
       at least one uppercase letter, 

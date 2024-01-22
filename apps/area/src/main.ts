@@ -4,8 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { AreaModule } from './area/area.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(LocationModule);
-  app.enableCors();
+  const app = await NestFactory.create(LocationModule, { cors: true });
 
   const areaOptions = new DocumentBuilder()
     .setTitle('Area Module.')

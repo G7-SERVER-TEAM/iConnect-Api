@@ -6,7 +6,8 @@ import { Province } from './entities/province.entity';
 import { City } from './entities/city.entity';
 import { District } from './entities/district.entity';
 import { ZipCode } from './entities/zip.entity';
-import { city, district, province, zipCode } from './mock/load.data';
+import { area, city, district, province, zipCode } from './mock/load.data';
+import { CreateLocationDto } from './dto/create-location.dto';
 
 @Injectable()
 export class AreaService {
@@ -22,35 +23,46 @@ export class AreaService {
     private readonly zipCodeRepository: Repository<ZipCode>,
   ) {
     let isNotExists = false;
-    this.findAllProvince().then((result) => {
-      isNotExists = result.length === 0;
-      if (isNotExists) {
-        this.provinceRepository
-          .createQueryBuilder()
-          .insert()
-          .into(Province)
-          .values(province)
-          .execute();
-        this.cityRepository
-          .createQueryBuilder()
-          .insert()
-          .into(City)
-          .values(city)
-          .execute();
-        this.districtRepository
-          .createQueryBuilder()
-          .insert()
-          .into(District)
-          .values(district)
-          .execute();
-        this.zipCodeRepository
-          .createQueryBuilder()
-          .insert()
-          .into(ZipCode)
-          .values(zipCode)
-          .execute();
-      }
-    });
+    this.findAllProvince()
+      .then((result) => {
+        isNotExists = result.length === 0;
+        if (isNotExists) {
+          this.provinceRepository
+            .createQueryBuilder()
+            .insert()
+            .into(Province)
+            .values(province)
+            .execute();
+          this.cityRepository
+            .createQueryBuilder()
+            .insert()
+            .into(City)
+            .values(city)
+            .execute();
+          this.districtRepository
+            .createQueryBuilder()
+            .insert()
+            .into(District)
+            .values(district)
+            .execute();
+          this.zipCodeRepository
+            .createQueryBuilder()
+            .insert()
+            .into(ZipCode)
+            .values(zipCode)
+            .execute();
+        }
+      })
+      .then(() => {
+        setTimeout(() => {
+          this.areaRepository
+            .createQueryBuilder()
+            .insert()
+            .into(Area)
+            .values(area)
+            .execute();
+        }, 10000);
+      });
   }
 
   findAllArea(): Promise<Area[]> {
@@ -63,5 +75,9 @@ export class AreaService {
 
   findAreaById(area_id: number): Promise<Area | null> {
     return this.areaRepository.findOneBy({ area_id });
+  }
+
+  createArea(location: CreateLocationDto): Promise<Area> {
+    return this.areaRepository.save(location);
   }
 }

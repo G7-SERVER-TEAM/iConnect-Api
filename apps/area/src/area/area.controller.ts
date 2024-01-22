@@ -1,8 +1,9 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { AreaService } from './area.service';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { Area } from './entities/area.entity';
 import { AuthGuard } from '../../../auth/src/auth/auth.guard';
+import { CreateLocationDto } from './dto/create-location.dto';
 
 @UseGuards(AuthGuard)
 @Controller('area')
@@ -31,7 +32,7 @@ export class AreaController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiBearerAuth()
-  @Get('/id/:uid')
+  @Get('/id/:id')
   async findAreaById(@Param('area_id') area_id: string) {
     const area: Area | null = await this.areaService.findAreaById(+area_id);
     const res: JSON = <JSON>(<unknown>{
@@ -41,5 +42,20 @@ export class AreaController {
       result: area != null ? area : [],
     });
     return res;
+  }
+
+  @ApiResponse({
+    status: 201,
+    description: 'CREATE.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Post('/create')
+  async create(@Body() location: CreateLocationDto) {
+    return {
+      status: 201,
+      message: 'success',
+      data: await this.areaService.createArea(location),
+    };
   }
 }

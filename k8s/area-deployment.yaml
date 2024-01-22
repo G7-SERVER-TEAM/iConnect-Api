@@ -1,20 +1,20 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth_service
+  name: area_service
   namespace: default
   labels:
     app: iConnect_Api
 spec:
   selector:
     app: iConnect_Api
-    tier: auth_service
+    tier: area_service
   sessionAffinity: ClientIP
   sessionAffinityConfig:
     clientIP:
       timeoutSeconds: 10800
   ports:
-  - port: 8081
+  - port: 8082
   type: NodePort
 ---
 apiVersion: apps/v1
@@ -27,20 +27,20 @@ spec:
   selector:
     matchLabels:
       app: iConnect_Api
-      tier: auth_service
+      tier: area_service
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
         app: iConnect_Api
-        tier: auth_service
+        tier: area_service
     spec:
       containers:
       - image: <Image>
-        name: auth_service
+        name: area_service
         ports:
-        - containerPort: 8081
+        - containerPort: 8082
         resources:
           request:
             memory: "64Mi"
