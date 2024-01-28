@@ -33,15 +33,42 @@ $ npm install
 
 ## Running the app
 
+**User service**
+
 ```bash
 # development
-$ npm run start
+$ npm run start user
 
 # watch mode
-$ npm run start:dev
+$ npm run start:dev user
 
 # production mode
-$ npm run start:prod
+$ npm run start:prod user
+```
+
+**Authentication service**
+
+```bash
+# development
+$ npm run start auth
+
+# watch mode
+$ npm run start:dev auth
+
+# production mode
+$ npm run start:prod auth
+```
+**Area service**
+
+```bash
+# development
+$ npm run start area
+
+# watch mode
+$ npm run start:dev area
+
+# production mode
+$ npm run start:prod area
 ```
 
 ## Test
