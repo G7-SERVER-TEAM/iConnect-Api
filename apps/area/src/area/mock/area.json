@@ -2,6 +2,7 @@
   {
     "area_id": 1,
     "area_name": "ฟิวเจอร์พาร์ค รังสิต",
+    "price_id": 1,
     "house_number": "94",
     "street": "พหลโยธิน",
     "district": 304,
@@ -12,6 +13,7 @@
   {
     "area_id": 2,
     "area_name": "เซ็นทรัลเวิลด์",
+    "price_id": 1,
     "house_number": "999/9",
     "street": "พระราม 1",
     "district": 37,

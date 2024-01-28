@@ -44,16 +44,15 @@ services:
       - .:/usr/src/app
     networks:
       - iConnect_network
-  iConnect_database:
-    image: mysql:8.1
+  database_service:
+    image: iconnect_database:1.0.0
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
     environment:
       - MYSQL_ROOT_PASSWORD=root
-    container_name: iConnect_database
+    container_name: database_service
     volumes:
       - iConnect_db:/var/lib/mysql
-      - ./sql/initialize.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - '3307:3306'
     networks:

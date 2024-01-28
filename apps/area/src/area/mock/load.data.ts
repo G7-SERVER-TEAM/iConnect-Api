@@ -13,6 +13,13 @@ const districtFile = path.join(process.cwd(), `${location}/district.json`);
 
 const zip_Code = path.join(process.cwd(), `${location}/post_number.json`);
 
+const priceConfigFile = path.join(
+  process.cwd(),
+  `${location}/price-config.json`,
+);
+
+const priceFile = path.join(process.cwd(), `${location}/price.json`);
+
 export const area = JSON.parse(fs.readFileSync(areaFile, 'utf-8').toString());
 
 export const province = JSON.parse(
@@ -28,3 +35,9 @@ export const district = JSON.parse(
 export const zipCode = JSON.parse(
   fs.readFileSync(zip_Code, 'utf-8').toString(),
 );
+
+export const priceConfig = JSON.parse(
+  fs.readFileSync(priceConfigFile, 'utf-8').toString(),
+);
+
+export const price = JSON.parse(fs.readFileSync(priceFile, 'utf-8').toString());

@@ -1,21 +1,10 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Area } from './area.entity';
+import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 import { Status } from '../enum/status.enum';
 
 @Entity()
 export class Price {
   @PrimaryGeneratedColumn('increment')
   price_id: number;
-
-  @ManyToOne(() => Area, (Area) => Area.area_id, { cascade: true })
-  @JoinColumn({ name: 'area_id', referencedColumnName: 'area_id' })
-  area_id: number;
 
   @Column({
     type: 'enum',
@@ -26,16 +15,17 @@ export class Price {
   status: Status;
 
   @Column({
-    type: 'timestamp',
-    name: 'start_time',
-    nullable: false,
+    type: 'json',
+    name: 'before',
+    nullable: true,
+    default: null,
   })
-  start_time: Date;
+  before: JSON;
 
   @Column({
     type: 'json',
-    name: 'configuration',
-    nullable: false,
+    name: 'after',
+    nullable: true,
   })
-  configuration: JSON;
+  after: JSON;
 }
