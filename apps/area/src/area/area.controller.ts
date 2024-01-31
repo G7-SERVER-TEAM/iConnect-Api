@@ -42,7 +42,7 @@ export class AreaController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiBearerAuth()
-  @Get('/id/:id')
+  @Get('/id/:area_id')
   async findAreaById(@Param('area_id') area_id: string) {
     const area: Area | null = await this.areaService.findAreaById(+area_id);
     const res: JSON = <JSON>(<unknown>{
