@@ -8,6 +8,6 @@ export class Role {
   @Column({ type: 'varchar', length: 30 })
   role_name: string;
 
-  @Column('json')
+  @Column({ type: 'json' })
   acls: JSON;
 }

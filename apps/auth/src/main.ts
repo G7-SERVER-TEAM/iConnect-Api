@@ -5,9 +5,7 @@ import { AuthModule } from './auth/auth.module';
 import { AccountModule } from './account/account.module';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AuthenticationModule);
-
-  app.enableCors();
+  const app = await NestFactory.create(AuthenticationModule, { cors: true });
 
   const authOptions = new DocumentBuilder()
     .setTitle('Authentication Module.')

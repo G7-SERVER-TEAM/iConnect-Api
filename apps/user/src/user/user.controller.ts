@@ -15,11 +15,15 @@ import { ApiBearerAuth, ApiBody, ApiResponse } from '@nestjs/swagger';
 import { Public } from '../../../auth/src/auth/decorators/public.decorator';
 import { UseGuards } from '@nestjs/common';
 import { AuthGuard } from '../../../auth/src/auth/auth.guard';
+import { RoleService } from '../role/role.service';
 
 @UseGuards(AuthGuard)
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly roleService: RoleService,
+  ) {}
 
   @ApiResponse({
     status: 200,
@@ -50,7 +54,19 @@ export class UserController {
       status: 200,
       message: 'success',
       findBy: 'uid',
-      result: user != null ? user : [],
+      result:
+        user != null
+          ? {
+              uid: user.uid,
+              name: user.name,
+              surname: user.surname,
+              birth_date: user.birth_date,
+              email: user.email,
+              phone_number: user.phone_number,
+              acl: (await this.roleService.findById(user.role_id)).acls,
+              area: user.area,
+            }
+          : [],
     });
     return res;
   }
@@ -61,7 +77,6 @@ export class UserController {
     description: 'The profile has been successfully created.',
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
-  @ApiBearerAuth()
   @ApiBody({
     type: CreateUserDto,
   })

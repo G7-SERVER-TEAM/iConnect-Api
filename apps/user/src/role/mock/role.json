@@ -2,11 +2,14 @@
   {
     "role_name": "User",
     "acls": {
-      "auth": [
-        "auth.sign-in",
-        "auth.sign-up",
-        "auth.grant-token",
-        "auth.create-account"
+      "account": [
+        "account.sign-in",
+        "account.sign-up",
+        "account.sign-out",
+        "account.grant-token",
+        "account.create",
+        "account.update",
+        "account.delete"
       ],
       "action": [
         "action.home",
@@ -14,17 +17,68 @@
         "action.notification",
         "action.history",
         "action.scan",
-        "action.track",
-        "action.view-status"
+        "action.transaction",
+        "action.summary",
+        "action.view-status",
+        "action.payment"
       ],
       "profile": [
         "profile.view",
         "profile.update",
         "profile.delete",
         "profile.create"
+      ],
+      "transaction": [
+        "transaction.create",
+        "transaction.update",
+        "transaction.view"
       ]
     }
   },
-  { "role_name": "Officer", "acls": {} },
-  { "role_name": "Owner", "acls": {} }
+  {
+    "role_name": "Officer",
+    "acls": {
+      "account": [
+        "account.sign-in",
+        "account.sign-up",
+        "account.sign-out",
+        "account.grant-token",
+        "account.create",
+        "account.update",
+        "account.delete"
+      ],
+      "action": [],
+      "member": ["member.create", "member.update", "member.delete"],
+      "profile": [
+        "profile.view",
+        "profile.update",
+        "profile.delete",
+        "profile.create"
+      ],
+      "transaction": ["transaction.update", "transaction.view"]
+    }
+  },
+  {
+    "role_name": "Owner",
+    "acls": {
+      "account": [
+        "account.sign-in",
+        "account.sign-up",
+        "account.sign-out",
+        "account.grant-token",
+        "account.create",
+        "account.update",
+        "account.delete"
+      ],
+      "action": [],
+      "member": ["member.create", "member.update", "member.delete"],
+      "profile": [
+        "profile.view",
+        "profile.update",
+        "profile.delete",
+        "profile.create"
+      ],
+      "transaction": ["transaction.update", "transaction.view"]
+    }
+  }
 ]

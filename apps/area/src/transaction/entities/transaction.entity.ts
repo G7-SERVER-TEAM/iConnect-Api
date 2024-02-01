@@ -1,16 +1,10 @@
-import {
-  Column,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Area } from '../../area/entities/area.entity';
 import { Status } from '../enum/status.enum';
 
 @Entity()
 export class Transaction {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn({ type: 'varchar' })
   transaction_id: string;
 
   @ManyToOne(() => Area, (Area) => Area.area_id, { cascade: true })
@@ -33,6 +27,6 @@ export class Transaction {
   @Column({ type: 'timestamp', name: 'start_time', nullable: false })
   start_time: Date;
 
-  @Column({ type: 'timestamp', name: 'end_time', nullable: false })
+  @Column({ type: 'timestamp', name: 'end_time', nullable: true })
   end_time: Date;
 }

@@ -28,6 +28,6 @@ export class Account {
   access_token: string;
 
   @OneToOne(() => User, (User) => User.uid, { cascade: true })
-  @JoinColumn({ name: 'uid' })
+  @JoinColumn({ name: 'user', referencedColumnName: 'uid' })
   uid: number;
 }

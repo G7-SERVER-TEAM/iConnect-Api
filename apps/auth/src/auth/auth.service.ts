@@ -12,18 +12,27 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  isAccessTokenExpired(accessToken: string): boolean {
+  async isAccessTokenExpired(access_token: string): Promise<boolean> {
     try {
-      this.jwtService.verify(accessToken);
-      return false;
-    } catch (e) {
+      await this.jwtService.verifyAsync(access_token, {
+        secret: process.env.JWT_SECRET,
+      });
+    } catch (error) {
+      console.log(`${access_token} is expired.`);
       return true;
     }
+    return false;
   }
 
   async signIn(username: string, pass: string): Promise<any> {
     const account: Account | null =
       await this.accountService.findByUsername(username);
+    const isExpired = await this.isAccessTokenExpired(account.access_token);
+    const payload = isExpired
+      ? { sub: account.uid, username: account.username }
+      : {};
+    const token = await this.jwtService.signAsync(payload);
+
     const passwordIsValid = await (crypto
       .createHash('sha256')
       .update(pass + process.env.ENCRYPT_SALT)
@@ -33,11 +42,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid username or password');
     }
 
+    if (isExpired) {
+      await this.accountService.updateAccessToken(account.uid, token);
+    }
     await this.accountService.updateLastLogin(account.account_id, new Date());
 
     return {
       username: account.username,
-      access_token: account.access_token,
+      access_token: isExpired ? token : account.access_token,
       last_logged_in: account.last_logged_in,
     };
   }

@@ -9,5 +9,6 @@ import { JwtService } from '@nestjs/jwt';
   imports: [DatabaseModule, DatabaseModule.forFeature([Role])],
   controllers: [RoleController],
   providers: [RoleService, JwtService],
+  exports: [RoleService],
 })
 export class RoleModule {}

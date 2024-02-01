@@ -87,10 +87,13 @@ export class AccountService {
   }
 
   @Public()
-  async create(
-    newAccount: CreateAccountDto,
-  ): Promise<
-    | { statusCode: number; id: number; username: string; access_token: string }
+  async create(newAccount: CreateAccountDto): Promise<
+    | {
+        statusCode: number;
+        id: number;
+        username: string;
+        access_token: string;
+      }
     | { statusCode: number; message: string }
   > {
     const existingUser = await this.findByUsername(newAccount.username);
@@ -134,6 +137,14 @@ export class AccountService {
         message: 'Internal server error. Failed to create user profile.',
       };
     }
+  }
+
+  async updateAccessToken(account_id: number, access_token: string) {
+    const account: Account | null = await this.accountRepository.findOneBy({
+      account_id,
+    });
+    account!.access_token = access_token;
+    this.accountRepository.save(account!);
   }
 
   async updateLastLogin(account_id: number, time: Date) {

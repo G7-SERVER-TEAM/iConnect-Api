@@ -1,7 +1,10 @@
 version: '1.1'
 services:
   user_service:
-    image: superpumpkin/iconnect_service:1.0.0
+    build:
+      context: .
+      dockerfile: "./apps/user/Dockerfile"
+      target: development
     command: ["npm", "run", "start:dev", "user"]
     container_name: user_service
     env_file:
@@ -13,7 +16,10 @@ services:
     networks:
       - iConnect_network
   auth_service:
-    image: superpumpkin/iconnect_service:1.0.0
+    build:
+      context: .
+      dockerfile: "./apps/auth/Dockerfile"
+      target: development
     command: ["npm", "run", "start:dev", "auth"]
     container_name: auth_service
     env_file:
@@ -25,7 +31,9 @@ services:
     networks:
       - iConnect_network
   transaction_service:
-    image: superpumpkin/iconnect_service:1.0.0
+    build:
+      context: .
+      dockerfile: ./apps/area/Dockerfile
     command: ["npm", "run", "start:dev", "area"]
     container_name: transaction_service
     env_file:
