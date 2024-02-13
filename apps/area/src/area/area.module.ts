@@ -17,5 +17,6 @@ import { JwtService } from '@nestjs/jwt';
   ],
   controllers: [AreaController],
   providers: [AreaService, JwtService],
+  exports: [AreaService],
 })
 export class AreaModule {}
