@@ -13,6 +13,8 @@ import { City } from '../area/entities/city.entity';
 import { District } from '../area/entities/district.entity';
 import { ZipCode } from '../area/entities/zip.entity';
 import { Payment } from '../payment/entities/payment.entity';
+import { User } from '../../../user/src/user/entities/user.entity';
+import { Role } from '../../../user/src/role/entities/role.entity';
 
 @Module({
   imports: [
@@ -26,6 +28,8 @@ import { Payment } from '../payment/entities/payment.entity';
       District,
       ZipCode,
       Payment,
+      User,
+      Role,
     ]),
   ],
   controllers: [TransactionController],

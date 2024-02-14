@@ -20,8 +20,8 @@ export class Payment {
 
   @Column({
     type: 'enum',
-    enum: ['WAITING', 'COMPLETE'],
-    default: 'WAITING',
+    enum: Status,
+    default: Status.WAITING,
   })
   status: Status;
 

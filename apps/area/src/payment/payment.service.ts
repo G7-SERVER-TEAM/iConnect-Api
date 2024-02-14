@@ -5,12 +5,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
 import { Repository } from 'typeorm';
 import { Status } from './enum/status.enum';
+import { User } from '../../../user/src/user/entities/user.entity';
+import { Transaction } from '../transaction/entities/transaction.entity';
 
 @Injectable()
 export class PaymentService {
   constructor(
     @InjectRepository(Payment)
     private readonly paymentRepository: Repository<Payment>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Transaction)
+    private readonly transactionRepository: Repository<Transaction>,
   ) {}
 
   generatePaymentID(length: number) {
@@ -36,8 +42,21 @@ export class PaymentService {
     return this.paymentRepository.find();
   }
 
-  findOne(payment_id: string) {
-    return this.paymentRepository.findOneBy({ payment_id });
+  async findOne(payment_id: string) {
+    const payment = await this.paymentRepository.findOneBy({ payment_id });
+    const user: User = await this.userRepository.findOneBy({
+      uid: payment.uid,
+    });
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      { transaction_id: payment.transaction_id },
+    );
+    return {
+      payment_id: payment.payment_id,
+      total_price: payment.total_price,
+      status: payment.status,
+      uid: user.uid,
+      transaction_id: transaction.transaction_id,
+    };
   }
 
   update(payment_id: string, updatePaymentDto: UpdatePaymentDto) {

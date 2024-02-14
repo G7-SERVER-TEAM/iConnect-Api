@@ -76,7 +76,7 @@ export class AuthService {
 
     return {
       email: account.email,
-      access_token: account.access_token,
+      access_token: isExpired ? token : account.access_token,
       last_logged_in: account.last_logged_in,
     };
   }

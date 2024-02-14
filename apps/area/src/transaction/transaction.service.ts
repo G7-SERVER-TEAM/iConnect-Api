@@ -11,6 +11,7 @@ import { CreatePaymentDto } from '../payment/dto/create-payment.dto';
 import { PaymentService } from '../payment/payment.service';
 import { Payment } from '../payment/entities/payment.entity';
 import { Status } from '../payment/enum/status.enum';
+import { User } from '../../../user/src/user/entities/user.entity';
 
 @Injectable()
 export class TransactionService {
@@ -18,6 +19,7 @@ export class TransactionService {
     @InjectRepository(Transaction)
     private readonly transactionRepository: Repository<Transaction>,
     @InjectRepository(Area) private readonly areaRepository: Repository<Area>,
+    @InjectRepository(User) private readonly userRepository: Repository<User>,
     @InjectRepository(Price)
     private readonly priceRepository: Repository<Price>,
     private readonly paymentService: PaymentService,
@@ -252,12 +254,14 @@ export class TransactionService {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
+    const uid = transaction.uid;
+    const user: User = await this.userRepository.findOneBy({ uid });
     const payment: CreatePaymentDto = {
       total_price: await this.calculateTotalPrice(transaction_id),
-      uid: await transaction.uid,
+      uid: user.uid,
       transaction_id: transaction.transaction_id,
       payment_id: '',
-      status: null,
+      status: Status.WAITING,
     };
     return await this.paymentService.create(payment);
   }

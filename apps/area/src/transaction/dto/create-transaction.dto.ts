@@ -19,7 +19,7 @@ export class CreateTransactionDto {
   transaction_id: string;
 
   @ApiProperty({
-    name: 'Area id',
+    name: 'area_id',
     description: 'It receive only number.',
     required: true,
   })
@@ -28,7 +28,7 @@ export class CreateTransactionDto {
   area_id: number;
 
   @ApiProperty({
-    name: 'UID',
+    name: 'uid',
     description: 'It receive only number.',
     required: true,
   })
@@ -37,7 +37,7 @@ export class CreateTransactionDto {
   uid: number;
 
   @ApiProperty({
-    name: 'License Plate',
+    name: 'license_plate',
     description: 'It receive only characters.',
     required: true,
   })
@@ -46,7 +46,7 @@ export class CreateTransactionDto {
   license_plate: string;
 
   @ApiProperty({
-    name: 'Parking Status',
+    name: 'status',
     description:
       'It receive only characters and that contain in a enum collection.',
     enum: Status,
@@ -57,7 +57,7 @@ export class CreateTransactionDto {
   status: Status;
 
   @ApiProperty({
-    name: 'Start time',
+    name: 'start_time',
     description: 'It receive only timestamp.',
     required: true,
   })
@@ -66,7 +66,7 @@ export class CreateTransactionDto {
   start_time: Date;
 
   @ApiProperty({
-    name: 'End time',
+    name: 'end_time',
     description: 'It receive only timestamp.',
     required: true,
   })

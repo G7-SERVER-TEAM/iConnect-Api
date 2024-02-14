@@ -13,7 +13,7 @@ import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { AuthGuard } from '../../../auth/src/auth/auth.guard';
 import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
-import { SearchDate } from '../payment/dto/search-date.dto';
+import { SearchDate } from './dto/search-date.dto';
 
 @UseGuards(AuthGuard)
 @Controller('transaction')
