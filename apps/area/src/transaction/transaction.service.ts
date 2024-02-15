@@ -12,6 +12,10 @@ import { PaymentService } from '../payment/payment.service';
 import { Payment } from '../payment/entities/payment.entity';
 import { Status } from '../payment/enum/status.enum';
 import { User } from '../../../user/src/user/entities/user.entity';
+import * as QRCode from 'qrcode';
+import * as fs from 'fs';
+import * as path from 'path';
+import { LPRData } from './dto/lpr-data.dto';
 
 @Injectable()
 export class TransactionService {
@@ -300,6 +304,53 @@ export class TransactionService {
       end_time: createTransactionDto.end_time,
     };
     return this.transactionRepository.save(transaction);
+  }
+
+  async updateTransactionAfterScanQRCode(
+    createTransactionDto: CreateTransactionDto,
+  ) {
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      { transaction_id: createTransactionDto.transaction_id },
+    );
+    const updateTransaction: Transaction = {
+      ...transaction,
+      area_id: createTransactionDto.area_id,
+      uid: createTransactionDto.uid,
+    };
+  }
+
+  async generateQRCode(data: LPRData) {
+    const transaction: Transaction = {
+      transaction_id: await this.generateTransactionID(
+        await this.findAllLength(),
+      ),
+      area_id: data.area_id,
+      uid: null,
+      license_plate: data.license_plate,
+      status: data.status,
+      start_time: data.start_time,
+      end_time: null,
+    };
+    try {
+      const base64Image = await QRCode.toDataURL(JSON.stringify(data));
+      const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
+      const imageBuffer = Buffer.from(base64Data, 'base64');
+      const file = path.join(
+        process.cwd(),
+        `./apps/area/src/transaction/images/${transaction.transaction_id}.jpeg`,
+      );
+      console.log(file);
+      await fs.writeFileSync(file, imageBuffer, 'binary');
+
+      console.log('PNG file saved successfully:', file);
+
+      // const jpegFile = `./apps/area/src/transaction/images/${transaction.transaction_id}.jpeg`;
+      // await sharp(file).toFormat('jpeg').jpeg({ quality: 90 }).toFile(jpegFile);
+
+      // console.log('JPEG file saved successfully:', jpegFile);
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   async update(
