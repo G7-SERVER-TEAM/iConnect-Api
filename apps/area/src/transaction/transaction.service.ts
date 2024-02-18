@@ -343,14 +343,13 @@ export class TransactionService {
       await fs.writeFileSync(file, imageBuffer, 'binary');
 
       console.log('PNG file saved successfully:', file);
-
-      // const jpegFile = `./apps/area/src/transaction/images/${transaction.transaction_id}.jpeg`;
-      // await sharp(file).toFormat('jpeg').jpeg({ quality: 90 }).toFile(jpegFile);
-
-      // console.log('JPEG file saved successfully:', jpegFile);
     } catch (err) {
       console.error(err);
     }
+  }
+
+  findQRCodeImage(imageName: string) {
+    return `./apps/area/src/transaction/images/${imageName}.jpeg`;
   }
 
   async update(
