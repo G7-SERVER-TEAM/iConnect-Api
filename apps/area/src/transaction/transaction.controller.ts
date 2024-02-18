@@ -18,11 +18,17 @@ import { ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 import { SearchDate } from './dto/search-date.dto';
 import { LPRData } from './dto/lpr-data.dto';
 import * as fs from 'fs';
+import { UpdateAfterQRCode } from './dto/update-after-qr.dto';
+import { PaymentService } from '../payment/payment.service';
+import { Payment } from '../payment/entities/payment.entity';
 
 @UseGuards(AuthGuard)
 @Controller('transaction')
 export class TransactionController {
-  constructor(private readonly transactionService: TransactionService) {}
+  constructor(
+    private readonly transactionService: TransactionService,
+    private readonly paymentService: PaymentService,
+  ) {}
 
   @ApiResponse({
     status: 201,
@@ -88,6 +94,27 @@ export class TransactionController {
         .status(HttpStatus.INTERNAL_SERVER_ERROR)
         .send('Internal Server Error');
     }
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Patch('/qrcode/update/:id')
+  async updateTransactionAfterQRCodeValidation(
+    @Param('id') id: string,
+    @Body() data: UpdateAfterQRCode,
+  ) {
+    return {
+      status: 200,
+      message: 'updated',
+      result: await this.transactionService.updateTransactionAfterScanQRCode(
+        id,
+        data,
+      ),
+    };
   }
 
   @ApiResponse({
@@ -169,11 +196,45 @@ export class TransactionController {
   })
   @ApiBearerAuth()
   @Post('/payment/create/:id')
-  async createBillForPayment(@Param('id') id: string) {
+  async createBillForQRCodePayment(@Param('id') id: string, @Res() res) {
+    const payment: Payment = await this.transactionService.createPayment(id);
+    const image = await this.paymentService.findQRCodeImage(payment.payment_id);
+    try {
+      // Check if the image file exists
+      if (fs.existsSync(image)) {
+        // Set the appropriate content type for the image
+        res.setHeader('Content-Type', 'image/jpeg');
+
+        // Read the image file and send it as the response
+        fs.createReadStream(image).pipe(res);
+      } else {
+        // If the image file does not exist, return a 404 error
+        res.status(HttpStatus.NOT_FOUND).send('Image not found');
+      }
+    } catch (error) {
+      // Handle other errors, if any
+      console.error(error);
+      res
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send('Internal Server Error');
+    }
+  }
+
+  @ApiResponse({
+    status: 201,
+    description: 'CREATED',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiBearerAuth()
+  @Post('/payment/cash/create/:id')
+  async createBillForCashPayment(@Param('id') id: string) {
     return {
       status: 201,
       message: 'created',
-      result: await this.transactionService.createPayment(id),
+      result: await this.transactionService.createCashPayment(id),
     };
   }
 
