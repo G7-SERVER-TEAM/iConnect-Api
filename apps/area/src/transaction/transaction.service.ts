@@ -16,6 +16,7 @@ import * as QRCode from 'qrcode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LPRData } from './dto/lpr-data.dto';
+import { UpdateAfterQRCode } from './dto/update-after-qr.dto';
 
 @Injectable()
 export class TransactionService {
@@ -270,6 +271,22 @@ export class TransactionService {
     return await this.paymentService.create(payment);
   }
 
+  async createCashPayment(transaction_id: string): Promise<Payment> {
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      { transaction_id },
+    );
+    const uid = transaction.uid;
+    const user: User = await this.userRepository.findOneBy({ uid });
+    const payment: CreatePaymentDto = {
+      total_price: await this.calculateTotalPrice(transaction_id),
+      uid: user.uid,
+      transaction_id: transaction.transaction_id,
+      payment_id: '',
+      status: Status.WAITING,
+    };
+    return await this.paymentService.createWithCash(payment);
+  }
+
   async getTransactionBetweenTime(
     start_time: Date,
     end_time: Date,
@@ -307,16 +324,17 @@ export class TransactionService {
   }
 
   async updateTransactionAfterScanQRCode(
-    createTransactionDto: CreateTransactionDto,
+    id: string,
+    transactionData: UpdateAfterQRCode,
   ) {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
-      { transaction_id: createTransactionDto.transaction_id },
+      { transaction_id: id },
     );
     const updateTransaction: Transaction = {
       ...transaction,
-      area_id: createTransactionDto.area_id,
-      uid: createTransactionDto.uid,
+      uid: transactionData.uid,
     };
+    return this.transactionRepository.save(updateTransaction);
   }
 
   async generateQRCode(data: LPRData) {
@@ -335,14 +353,25 @@ export class TransactionService {
       const base64Image = await QRCode.toDataURL(JSON.stringify(data));
       const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
-      const file = path.join(
+      // Specify the directory path where the JPEG image will be saved
+      const directory = path.join(
         process.cwd(),
-        `./apps/area/src/transaction/images/${transaction.transaction_id}.jpeg`,
+        './apps/area/src/transaction/images/',
       );
-      console.log(file);
-      await fs.writeFileSync(file, imageBuffer, 'binary');
 
-      console.log('PNG file saved successfully:', file);
+      // Create the directory if it doesn't exist
+      await fs.promises.mkdir(directory, { recursive: true });
+
+      // Specify the file path including the directory
+      const file = path.join(directory, `${transaction.transaction_id}.jpeg`);
+
+      console.log(file);
+
+      await fs.promises.writeFile(file, imageBuffer, 'binary');
+
+      console.log('JPEG file saved successfully:', file);
+
+      return this.transactionRepository.save(transaction);
     } catch (err) {
       console.error(err);
     }
