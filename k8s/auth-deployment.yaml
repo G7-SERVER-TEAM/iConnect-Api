@@ -37,7 +37,7 @@ spec:
         tier: auth_service
     spec:
       containers:
-      - image: <Image>
+      - image: superpumpkin/iconnect_service:1.0.2
         name: auth_service
         ports:
         - containerPort: 8081

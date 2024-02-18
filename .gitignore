@@ -37,3 +37,8 @@ lerna-debug.log*
 # env file
 .env
 db.config.ts
+
+# Image folder
+/**/*.png
+/**/*.jpg
+/**/*.jpeg

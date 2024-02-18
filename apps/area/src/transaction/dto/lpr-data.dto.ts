@@ -1,22 +1,22 @@
+import { ApiProperty } from '@nestjs/swagger';
 import {
-  IsDate,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
   IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsDate,
+  IsNumber,
 } from 'class-validator';
 import { Status } from '../enum/status.enum';
-import { ApiProperty } from '@nestjs/swagger';
 
-export class CreateTransactionDto {
+export class LPRData {
   @ApiProperty({
-    name: 'Transaction id',
+    name: 'license_plate',
     description: 'It receive only characters.',
     required: true,
   })
   @IsString()
   @IsNotEmpty()
-  transaction_id: string;
+  license_plate: string;
 
   @ApiProperty({
     name: 'area_id',
@@ -26,24 +26,6 @@ export class CreateTransactionDto {
   @IsNumber()
   @IsNotEmpty()
   area_id: number;
-
-  @ApiProperty({
-    name: 'uid',
-    description: 'It receive only number.',
-    required: true,
-  })
-  @IsNumber()
-  @IsNotEmpty()
-  uid: number;
-
-  @ApiProperty({
-    name: 'license_plate',
-    description: 'It receive only characters.',
-    required: true,
-  })
-  @IsString()
-  @IsNotEmpty()
-  license_plate: string;
 
   @ApiProperty({
     name: 'status',
@@ -64,13 +46,4 @@ export class CreateTransactionDto {
   @IsDate()
   @IsNotEmpty()
   start_time: Date;
-
-  @ApiProperty({
-    name: 'end_time',
-    description: 'It receive only timestamp.',
-    required: true,
-  })
-  @IsDate()
-  @IsNotEmpty()
-  end_time: Date;
 }

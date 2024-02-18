@@ -34,7 +34,7 @@ spec:
     spec:
       containers:
       - name: iConnect-database
-        image: mysql:8.1
+        image: superpumpkin/iconnect_database:1.0.0
         command: ["mysql", "--default-authentication-plugin=caching_sha2_password"]
         env:
           - name: MYSQL_ROOT_PASSWORD
