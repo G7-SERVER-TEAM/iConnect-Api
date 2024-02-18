@@ -68,7 +68,7 @@ export class TransactionController {
   @ApiBearerAuth()
   @Get('/qrcode/:imageName')
   async getQRCode(@Param('imageName') imageName: string, @Res() res) {
-    const image = `./apps/area/src/transaction/images/${imageName}.jpeg`;
+    const image = this.transactionService.findQRCodeImage(imageName);
     try {
       // Check if the image file exists
       if (fs.existsSync(image)) {
