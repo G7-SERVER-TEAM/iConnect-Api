@@ -310,6 +310,13 @@ export class TransactionService {
     return this.transactionRepository.findOneBy({ transaction_id });
   }
 
+  findOneByStatusAndUID(uid: number, status) {
+    return this.transactionRepository.findOneBy({
+      uid: uid,
+      status: status,
+    });
+  }
+
   async create(createTransactionDto: CreateTransactionDto) {
     const transaction: Transaction = {
       transaction_id: this.generateTransactionID(await this.findAllLength()),

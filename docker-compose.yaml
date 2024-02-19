@@ -1,41 +1,38 @@
 version: '1.1'
 services:
   user_service:
-    image: superpumpkin/iconnect_service:1.0.3
+    image: superpumpkin/iconnect_service:1.0.0
     command: ["npm", "run", "start:dev", "user"]
     container_name: user_service
     env_file:
       - .env
     ports:
       - "8080:8080"
-    volumes:
-      - ".:/usr/src/app"
     networks:
       - iConnect_network
+
   auth_service:
-    image: superpumpkin/iconnect_service:1.0.3
+    image: superpumpkin/iconnect_service:1.0.0
     command: ["npm", "run", "start:dev", "auth"]
     container_name: auth_service
     env_file:
       - .env
     ports:
       - "8081:8081"
-    volumes:
-      - ".:/usr/src/app"
     networks:
       - iConnect_network
+
   transaction_service:
-    image: superpumpkin/iconnect_service:1.0.3
+    image: superpumpkin/iconnect_service:1.0.0
     command: ["npm", "run", "start:dev", "area"]
     container_name: transaction_service
     env_file:
       - .env
     ports:
       - 8082:8082
-    volumes:
-      - .:/usr/src/app
     networks:
       - iConnect_network
+
   database_service:
     image: superpumpkin/iconnect_database:1.0.0
     command: --default-authentication-plugin=caching_sha2_password
@@ -49,7 +46,9 @@ services:
       - '3307:3306'
     networks:
       - iConnect_network
+
 volumes:
   iConnect_db:
+
 networks:
   iConnect_network:

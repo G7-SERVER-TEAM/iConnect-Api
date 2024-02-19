@@ -151,6 +151,24 @@ export class TransactionController {
     status: 200,
     description: 'OK.',
   })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/progress')
+  async findOneByUIDAndStatus(@Body() data) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.findOneByStatusAndUID(
+        data.uid,
+        data.status,
+      ),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
   @ApiResponse({
     status: 403,
     description: 'Forbidden',
