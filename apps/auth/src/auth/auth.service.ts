@@ -3,12 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import * as crypto from 'crypto';
 import { AccountService } from '../account/account.service';
 import { Account } from '../account/entities/account.entity';
+import { UserService } from '../../../user/src/user/user.service';
+import { User } from '../../../user/src/user/entities/user.entity';
 
 @Injectable()
 export class AuthService {
   constructor(
     private accountService: AccountService,
     private jwtService: JwtService,
+    private userService: UserService,
   ) {}
 
   async isAccessTokenExpired(access_token: string): Promise<boolean> {
@@ -74,10 +77,13 @@ export class AuthService {
     }
     await this.accountService.updateLastLogin(account.account_id, new Date());
 
+    const user: User = await this.userService.findByUID(account.uid);
+
     return {
       email: account.email,
       access_token: isExpired ? token : account.access_token,
       last_logged_in: account.last_logged_in,
+      uid: user.uid,
     };
   }
 }
