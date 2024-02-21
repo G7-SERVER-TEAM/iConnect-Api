@@ -21,6 +21,7 @@ import * as fs from 'fs';
 import { UpdateAfterQRCode } from './dto/update-after-qr.dto';
 import { PaymentService } from '../payment/payment.service';
 import { Payment } from '../payment/entities/payment.entity';
+import { SearchHistory } from './dto/search-history.dto';
 
 @UseGuards(AuthGuard)
 @Controller('transaction')
@@ -153,15 +154,30 @@ export class TransactionController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiBearerAuth()
-  @Get('/progress')
-  async findOneByUIDAndStatus(@Body() data) {
+  @Post('/progress/:id')
+  async findOneByUIDAndStatus(
+    @Param('id') id: number,
+    @Body() data: SearchHistory,
+  ) {
     return {
       status: 200,
       message: 'success',
-      result: await this.transactionService.findOneByStatusAndUID(
-        data.uid,
-        data.status,
-      ),
+      result: await this.transactionService.findOneByStatusAndUID(id, data),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Post('/history/:id')
+  async findHistory(@Param('id') id: number, @Body() data: SearchHistory) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.findAllComplete(id, data),
     };
   }
 
@@ -197,6 +213,24 @@ export class TransactionController {
   @ApiBearerAuth()
   @Get('/price/:id')
   async getTotalPrice(@Param('id') id: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.calculateCurrentPrice(id),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiBearerAuth()
+  @Get('/price/complete/:id')
+  async getTotalCompletePrice(@Param('id') id: string) {
     return {
       status: 200,
       message: 'success',

@@ -10,13 +10,15 @@ import { Price } from '../area/entities/price.entity';
 import { CreatePaymentDto } from '../payment/dto/create-payment.dto';
 import { PaymentService } from '../payment/payment.service';
 import { Payment } from '../payment/entities/payment.entity';
-import { Status } from '../payment/enum/status.enum';
+import { Status as PaymentStatus } from '../payment/enum/status.enum';
+import { Status as TransactionStatus } from './enum/status.enum';
 import { User } from '../../../user/src/user/entities/user.entity';
 import * as QRCode from 'qrcode';
 import * as fs from 'fs';
 import * as path from 'path';
 import { LPRData } from './dto/lpr-data.dto';
 import { UpdateAfterQRCode } from './dto/update-after-qr.dto';
+import { SearchHistory } from './dto/search-history.dto';
 
 @Injectable()
 export class TransactionService {
@@ -76,6 +78,155 @@ export class TransactionService {
     };
   }
 
+  async calculateCurrentPrice(transaction_id: string): Promise<number> {
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      { transaction_id },
+    );
+    const area_id = transaction.area_id;
+    const price_id = (await this.areaRepository.findOneBy({ area_id }))
+      .price_id;
+
+    const price: Price = await this.priceRepository.findOneBy({
+      price_id,
+    });
+    const values: string = JSON.stringify(price.after);
+
+    const setting: { start_time: string; configuration: any[] } =
+      JSON.parse(values);
+
+    const start_time = transaction.start_time;
+    const end_time = new Date();
+
+    let transactionTime = this.calculateStartAndEndTime(start_time, end_time);
+
+    const totalTime: number = this.calculateDifferentTime(start_time, end_time);
+
+    let totalPrice = 0;
+
+    let counter = 0;
+
+    let isNotEnd = true;
+
+    while (counter < setting.configuration.length && isNotEnd) {
+      const config = setting.configuration[counter];
+      const configurationTime = this.calculateStartAndEndTime(
+        new Date(config.start_time),
+        new Date(config.end_time),
+      );
+
+      if (totalTime < 1) isNotEnd = false;
+      else if (
+        transactionTime.start_hours === configurationTime.end_hours &&
+        transactionTime.start_minutes === configurationTime.start_minutes
+      ) {
+      } else if (
+        transactionTime.start_hours === configurationTime.end_hours &&
+        transactionTime.start_minutes > configurationTime.end_minutes
+      ) {
+      } else if (transactionTime.start_hours > configurationTime.end_hours) {
+      } else if (
+        // End time equal End time rate but minute digits more than end time rate.
+        transactionTime.end_hours === configurationTime.end_hours &&
+        transactionTime.end_minutes > configurationTime.end_minutes
+      ) {
+        const usedTime = this.calculateDifferentTime(
+          new Date(config.start_time),
+          new Date(config.end_time),
+        );
+        const usedPrice =
+          (Math.ceil(usedTime) - 1) * config.rate + config.start;
+        totalPrice += usedPrice;
+        let splitTime = this.getTimDescription(new Date(config.end_time));
+        splitTime = {
+          ...splitTime,
+          year: end_time.getFullYear(),
+          month: end_time.getMonth(),
+          day: end_time.getDate(),
+        };
+        const newDate = new Date(
+          splitTime.year,
+          splitTime.month,
+          splitTime.day,
+          splitTime.hour,
+          splitTime.minute,
+          splitTime.millisecond,
+        );
+        transactionTime = this.calculateStartAndEndTime(newDate, end_time);
+      } else if (
+        // End time less than End time rate.
+        transactionTime.start_hours >= configurationTime.start_hours &&
+        transactionTime.start_minutes >= configurationTime.start_minutes &&
+        (transactionTime.end_hours < configurationTime.end_hours ||
+          transactionTime.end_hours === configurationTime.end_hours) &&
+        transactionTime.end_minutes >= configurationTime.end_minutes
+      ) {
+        let splitTime = this.getTimDescription(new Date(config.start_time));
+        splitTime = {
+          ...splitTime,
+          year: end_time.getFullYear(),
+          month: end_time.getMonth(),
+          day: end_time.getDate(),
+        };
+        const newDate = new Date(
+          splitTime.year,
+          splitTime.month,
+          splitTime.day,
+          splitTime.hour,
+          splitTime.minute,
+          splitTime.millisecond,
+        );
+        console.log(transaction.start_time);
+        console.log(end_time);
+        const usedTime = this.calculateDifferentTime(
+          transaction.start_time,
+          end_time,
+        );
+        console.log(usedTime);
+        const usedPrice =
+          (Math.ceil(usedTime) - 2) * config.rate + config.start;
+        console.log(usedPrice);
+        console.log(totalPrice);
+        totalPrice += usedPrice;
+        isNotEnd = false;
+      } else if (
+        // End time more than End time rate.
+        transactionTime.start_hours >= configurationTime.start_hours &&
+        transactionTime.start_minutes >= configurationTime.start_minutes &&
+        transactionTime.end_hours > configurationTime.end_hours &&
+        transactionTime.end_minutes >= configurationTime.end_minutes
+      ) {
+        const usedTime = this.calculateDifferentTime(
+          new Date(config.start_time),
+          new Date(config.end_time),
+        );
+        console.log(usedTime);
+        const usedPrice =
+          (Math.ceil(usedTime) - 1) * config.rate + config.start;
+        console.log(usedPrice);
+        totalPrice += usedPrice;
+        let splitTime = this.getTimDescription(new Date(config.end_time));
+        splitTime = {
+          ...splitTime,
+          year: end_time.getFullYear(),
+          month: end_time.getMonth(),
+          day: end_time.getDate(),
+        };
+        const newDate = new Date(
+          splitTime.year,
+          splitTime.month,
+          splitTime.day,
+          splitTime.hour,
+          splitTime.minute,
+          splitTime.millisecond,
+        );
+        console.log(new Date(newDate));
+        transactionTime = this.calculateStartAndEndTime(newDate, end_time);
+      }
+      counter++;
+    }
+    return totalPrice;
+  }
+
   async calculateTotalPrice(transaction_id: string): Promise<number> {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
@@ -113,33 +264,6 @@ export class TransactionService {
       );
       console.log(transactionTime);
       console.log(configurationTime);
-      // Use Case 1 ✅
-      // Rate: 10.00 - 13.00
-      // Used: 10.00 - 12.59 = 30
-
-      // Use Case 2 ✅
-      // Rate: 10.00 - 13.00, 13.00 - 21.00
-      // Used: 10.00 - 15.30 => 10.00 - 13.00, 13.00 - 15.30 = 84
-
-      // Use Case 3 ✅
-      // Rate: 10.00 - 13.00
-      // Used: 10.00 - 13.00 = 30
-
-      // Use Case 4 ✅
-      // Rate: 10.00 - 13.00
-      // Used: 10.00 - 10.45 = 0
-
-      // Use Case 5 ✅
-      // Rate: 10.00 - 13.00, 13.00 - 15.00
-      // Used: 10.00 - 13.30 = 40
-
-      // Use Case 6 ✅
-      // Rate: 10.00 - 13.00, 13.00 - 15.00
-      // Used: 13.00 - 15.30 = 54
-
-      // Use Case 7 ✅
-      // Rate: 10.00 - 13.00, 13.00 - 15.00
-      // Used: 10.00 - 14.30 = 62
 
       if (totalTime < 1) isNotEnd = false;
       else if (
@@ -147,7 +271,13 @@ export class TransactionService {
         transactionTime.start_minutes === configurationTime.start_minutes
       ) {
       } else if (
+        transactionTime.start_hours === configurationTime.end_hours &&
+        transactionTime.start_minutes > configurationTime.end_minutes
+      ) {
+      } else if (transactionTime.start_hours > configurationTime.end_hours) {
+      } else if (
         // End time equal End time rate but minute digits more than end time rate.
+        // 10.00 = 03.00, 13.00 = 06.00
         transactionTime.end_hours === configurationTime.end_hours &&
         transactionTime.end_minutes > configurationTime.end_minutes
       ) {
@@ -208,7 +338,7 @@ export class TransactionService {
         const usedTime = this.calculateDifferentTime(newDate, end_time);
         console.log(usedTime);
         const usedPrice =
-          (Math.ceil(usedTime) - 1) * config.rate + config.start;
+          (Math.ceil(usedTime) - 2) * config.rate + config.start;
         console.log(usedPrice);
         console.log(totalPrice);
         totalPrice += usedPrice;
@@ -266,7 +396,7 @@ export class TransactionService {
       uid: user.uid,
       transaction_id: transaction.transaction_id,
       payment_id: '',
-      status: Status.WAITING,
+      status: PaymentStatus.WAITING,
     };
     return await this.paymentService.create(payment);
   }
@@ -282,7 +412,7 @@ export class TransactionService {
       uid: user.uid,
       transaction_id: transaction.transaction_id,
       payment_id: '',
-      status: Status.WAITING,
+      status: PaymentStatus.WAITING,
     };
     return await this.paymentService.createWithCash(payment);
   }
@@ -310,11 +440,42 @@ export class TransactionService {
     return this.transactionRepository.findOneBy({ transaction_id });
   }
 
-  findOneByStatusAndUID(uid: number, status) {
-    return this.transactionRepository.findOneBy({
-      uid: uid,
-      status: status,
+  async findAllComplete(uid: number, data: SearchHistory) {
+    const completeTransaction: Transaction[] =
+      await this.transactionRepository.find({
+        where: {
+          uid: uid,
+          status: data.status,
+        },
+      });
+    const modifyCompleteTransaction: Promise<Transaction[]> = Promise.all(
+      completeTransaction.map(async (transaction) => {
+        const area = await this.areaRepository.findOneBy({
+          area_id: transaction.area_id,
+        });
+        return {
+          ...transaction,
+          area_id: area?.area_id,
+        };
+      }),
+    );
+    return modifyCompleteTransaction;
+  }
+
+  async findOneByStatusAndUID(uid: number, data: SearchHistory) {
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      {
+        uid: uid,
+        status: data.status,
+      },
+    );
+    const area: Area = await this.areaRepository.findOneBy({
+      area_id: transaction.area_id,
     });
+    return {
+      ...transaction,
+      area_id: area.area_id,
+    };
   }
 
   async create(createTransactionDto: CreateTransactionDto) {
@@ -356,8 +517,14 @@ export class TransactionService {
       start_time: data.start_time,
       end_time: null,
     };
+
+    const newData = {
+      ...data,
+      transaction_id: transaction.transaction_id,
+    };
+
     try {
-      const base64Image = await QRCode.toDataURL(JSON.stringify(data));
+      const base64Image = await QRCode.toDataURL(JSON.stringify(newData));
       const base64Data = base64Image.replace(/^data:image\/png;base64,/, '');
       const imageBuffer = Buffer.from(base64Data, 'base64');
       // Specify the directory path where the JPEG image will be saved
