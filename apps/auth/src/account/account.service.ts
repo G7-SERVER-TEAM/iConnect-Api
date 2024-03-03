@@ -37,6 +37,10 @@ export class AccountService {
     return this.accountRepository.findOneBy({ email });
   }
 
+  findByUid(uid: string): Promise<Account | null> {
+    return this.accountRepository.findOneBy({ uid: +uid });
+  }
+
   @Public()
   async createWithEmail(
     newAccount: CreateAccountWithEmailDto,
@@ -62,6 +66,7 @@ export class AccountService {
       account.email = newAccount.email;
       account.password = hashPassword;
       account.uid = newAccount.uid;
+      account.logged_id_history = [];
       account.last_logged_in = DateTime.now()
         .setZone('Asia/Bangkok')
         .toJSDate();
@@ -114,6 +119,7 @@ export class AccountService {
       account.username = newAccount.username;
       account.password = hashPassword;
       account.uid = newAccount.uid;
+      account.logged_id_history = [];
       account.last_logged_in = DateTime.now()
         .setZone('Asia/Bangkok')
         .toJSDate();
@@ -152,6 +158,7 @@ export class AccountService {
       account_id,
     });
     account!.last_logged_in = time;
+    account.logged_id_history.push(account.last_logged_in);
     this.accountRepository.save(account!);
   }
 

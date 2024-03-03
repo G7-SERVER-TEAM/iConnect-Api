@@ -50,8 +50,29 @@ export class AccountController {
   })
   @ApiBearerAuth()
   @Get('/id/:id')
-  async findByUID(@Param('id') id: string) {
+  async findByAccountId(@Param('id') id: string) {
     const account: Account | null = await this.accountService.findById(+id);
+    const res: JSON = <JSON>(<unknown>{
+      status: 200,
+      message: 'success',
+      findBy: 'id',
+      result: account != null ? account : [],
+    });
+    return res;
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiBearerAuth()
+  @Get('/uid/:id')
+  async findByUid(@Param('id') id: string) {
+    const account: Account | null = await this.accountService.findByUid(id);
     const res: JSON = <JSON>(<unknown>{
       status: 200,
       message: 'success',
