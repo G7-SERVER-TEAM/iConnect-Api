@@ -24,6 +24,9 @@ export class Account {
   @Column({ type: 'timestamp' })
   last_logged_in: Date;
 
+  @Column({ type: 'json', nullable: false })
+  logged_id_history: Date[];
+
   @Column({ type: 'varchar' })
   access_token: string;
 

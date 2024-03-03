@@ -78,6 +78,7 @@ export class AuthService {
     await this.accountService.updateLastLogin(account.account_id, new Date());
 
     const user: User = await this.userService.findByUID(account.uid);
+    console.log(user);
 
     return {
       email: account.email,
