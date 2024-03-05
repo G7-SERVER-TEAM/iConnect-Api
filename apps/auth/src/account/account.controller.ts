@@ -26,8 +26,8 @@ export class AccountController {
     description: 'OK.',
   })
   @ApiResponse({
-    status: 200,
-    description: 'OK.',
+    status: 403,
+    description: 'Forbidden.',
   })
   @ApiBearerAuth()
   @Get()
@@ -45,8 +45,8 @@ export class AccountController {
     description: 'OK.',
   })
   @ApiResponse({
-    status: 200,
-    description: 'OK.',
+    status: 403,
+    description: 'Forbidden.',
   })
   @ApiBearerAuth()
   @Get('/id/:id')
@@ -66,8 +66,8 @@ export class AccountController {
     description: 'OK.',
   })
   @ApiResponse({
-    status: 200,
-    description: 'OK.',
+    status: 403,
+    description: 'Forbidden.',
   })
   @ApiBearerAuth()
   @Get('/uid/:id')
