@@ -74,4 +74,19 @@ export class NewsController {
         .send('Internal Server Error');
     }
   }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('')
+  async findAll() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.newsService.findAll(),
+    };
+  }
 }

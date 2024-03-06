@@ -28,4 +28,8 @@ export class NewsService {
   findNewsImage(imageName: string) {
     return `./apps/auth/src/news/images/${imageName}`;
   }
+
+  findAll() {
+    return this.newsRepository.find();
+  }
 }
