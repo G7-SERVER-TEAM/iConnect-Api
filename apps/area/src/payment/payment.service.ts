@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
-import { UpdatePaymentDto } from './dto/update-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
 import { Repository } from 'typeorm';
@@ -102,13 +101,13 @@ export class PaymentService {
     };
   }
 
-  async update(payment_id: string, updatePaymentDto: UpdatePaymentDto) {
+  async update(payment_id: string) {
     const payment: Payment = await this.paymentRepository.findOneBy({
       payment_id: payment_id,
     });
     const updatePayment: Payment = {
       ...payment,
-      status: updatePaymentDto.status,
+      status: Status.COMPLETE,
     };
     return this.paymentRepository.save(updatePayment);
   }

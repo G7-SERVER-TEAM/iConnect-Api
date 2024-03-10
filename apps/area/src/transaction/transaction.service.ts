@@ -19,6 +19,7 @@ import * as path from 'path';
 import { LPRData } from './dto/lpr-data.dto';
 import { UpdateAfterQRCode } from './dto/update-after-qr.dto';
 import { SearchHistory } from './dto/search-history.dto';
+import { UserService } from '../../../user/src/user/user.service';
 
 @Injectable()
 export class TransactionService {
@@ -30,6 +31,7 @@ export class TransactionService {
     @InjectRepository(Price)
     private readonly priceRepository: Repository<Price>,
     private readonly paymentService: PaymentService,
+    private readonly userService: UserService,
   ) {}
 
   generateTransactionID(length) {
@@ -78,7 +80,9 @@ export class TransactionService {
     };
   }
 
-  async calculateCurrentPrice(transaction_id: string): Promise<number> {
+  async calculateCurrentPrice(
+    transaction_id: string,
+  ): Promise<{ totalPrice: number; currentRate: number }> {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
@@ -96,6 +100,77 @@ export class TransactionService {
 
     const start_time = transaction.start_time;
     const end_time = new Date();
+
+    console.log({ start_time, end_time });
+
+    let totalTime: number = this.calculateDifferentTime(start_time, end_time);
+
+    console.log(totalTime);
+    let totalPrice = 0;
+
+    let counter = 0;
+
+    let isNotEnd = true;
+    let currentRate = 0;
+
+    while (counter < setting.configuration.length && isNotEnd) {
+      const config = setting.configuration[counter];
+      const start_hour = config.start_hour;
+      const end_hour = config.end_hour;
+      const rate = config.rate;
+
+      console.log(`Round: ${counter}`);
+
+      console.log({ start_hour, end_hour });
+
+      if (totalTime > end_hour) {
+        const diff = end_hour - start_hour;
+        totalPrice += diff * rate;
+        totalTime -= diff;
+        currentRate = rate;
+        console.log({ counter, totalTime, totalPrice });
+      } else if (end_hour > totalTime) {
+        if (counter !== 0) {
+          totalPrice += Math.ceil(totalTime) * rate;
+          currentRate = rate;
+        } else {
+          const diff = totalTime - start_hour;
+          totalPrice += diff * rate;
+          isNotEnd = false;
+          currentRate = rate;
+        }
+        console.log({ counter, totalTime, totalPrice });
+      } else if (totalTime == end_hour) {
+        const diff = end_hour - start_hour;
+        totalPrice += diff * rate;
+        currentRate = rate;
+      }
+      counter++;
+    }
+    return {
+      totalPrice: totalPrice,
+      currentRate: currentRate,
+    };
+  }
+
+  async calculateTotalPrice(transaction_id: string): Promise<number> {
+    const transaction: Transaction = await this.transactionRepository.findOneBy(
+      { transaction_id },
+    );
+    const area_id = transaction.area_id;
+    const price_id = (await this.areaRepository.findOneBy({ area_id }))
+      .price_id;
+
+    const price: Price = await this.priceRepository.findOneBy({
+      price_id,
+    });
+    const values: string = JSON.stringify(price.after);
+
+    const setting: { start_time: string; configuration: any[] } =
+      JSON.parse(values);
+
+    const start_time = transaction.start_time;
+    const end_time = transaction.end_time;
 
     console.log({ start_time, end_time });
 
@@ -141,58 +216,12 @@ export class TransactionService {
     return totalPrice;
   }
 
-  async calculateTotalPrice(transaction_id: string): Promise<number> {
-    const transaction: Transaction = await this.transactionRepository.findOneBy(
-      { transaction_id },
-    );
-    const area_id = transaction.area_id;
-    const price_id = (await this.areaRepository.findOneBy({ area_id }))
-      .price_id;
-
-    const price: Price = await this.priceRepository.findOneBy({
-      price_id,
-    });
-    const values: string = JSON.stringify(price.after);
-
-    const setting: { start_time: string; configuration: any[] } =
-      JSON.parse(values);
-
-    const start_time = transaction.start_time;
-    const end_time = transaction.end_time;
-
-    let totalTime: number = this.calculateDifferentTime(start_time, end_time);
-
-    let totalPrice = 0;
-
-    let counter = 0;
-
-    while (counter < setting.configuration.length) {
-      const config = setting.configuration[counter];
-      const start_hour = config.start_hour;
-      const end_hour = config.end_hour;
-      const rate = config.rate;
-
-      if (totalTime > end_hour) {
-        const diff = end_hour - start_hour;
-        totalPrice += diff * rate;
-        totalTime -= diff;
-      } else if (totalTime < end_hour) {
-        totalPrice += Math.ceil(totalTime) * rate;
-      } else if (totalTime == end_hour) {
-        const diff = end_hour - start_hour;
-        totalPrice += diff * rate;
-      }
-      counter++;
-    }
-    return totalPrice;
-  }
-
   async createPayment(transaction_id: string): Promise<Payment> {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
-    const uid = transaction.uid;
-    const user: User = await this.userRepository.findOneBy({ uid });
+    const user: User = await this.userService.findByUID(transaction.uid);
+    console.log(user);
     const payment: CreatePaymentDto = {
       total_price: await this.calculateTotalPrice(transaction_id),
       uid: user.uid,
@@ -207,8 +236,7 @@ export class TransactionService {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
-    const uid = transaction.uid;
-    const user: User = await this.userRepository.findOneBy({ uid });
+    const user: User = await this.userService.findByUID(transaction.uid);
     const payment: CreatePaymentDto = {
       total_price: await this.calculateTotalPrice(transaction_id),
       uid: user.uid,

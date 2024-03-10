@@ -45,7 +45,7 @@ services:
     networks:
       - iConnect_network
   database_service:
-    image: superpumpkin/iconnect_database:1.0.0
+    image: superpumpkin/iconnect_database:1.0.1
     command: --default-authentication-plugin=caching_sha2_password
     restart: always
     environment:

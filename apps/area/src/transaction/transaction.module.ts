@@ -15,6 +15,8 @@ import { ZipCode } from '../area/entities/zip.entity';
 import { Payment } from '../payment/entities/payment.entity';
 import { User } from '../../../user/src/user/entities/user.entity';
 import { Role } from '../../../user/src/role/entities/role.entity';
+import { UserService } from '../../../user/src/user/user.service';
+import { RoleService } from '../../../user/src/role/role.service';
 
 @Module({
   imports: [
@@ -33,6 +35,13 @@ import { Role } from '../../../user/src/role/entities/role.entity';
     ]),
   ],
   controllers: [TransactionController],
-  providers: [TransactionService, JwtService, AreaService, PaymentService],
+  providers: [
+    TransactionService,
+    JwtService,
+    AreaService,
+    PaymentService,
+    UserService,
+    RoleService,
+  ],
 })
 export class TransactionModule {}

@@ -1,7 +1,7 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryColumn } from 'typeorm';
 import { Area } from '../../area/entities/area.entity';
 import { Status } from '../enum/status.enum';
-import { User } from '../../../../user/src/user/entities/user.entity';
+// import { User } from '../../../../user/src/user/entities/user.entity';
 
 @Entity()
 export class Transaction {
@@ -12,8 +12,9 @@ export class Transaction {
   @JoinColumn({ name: 'area' })
   area_id: number;
 
-  @ManyToOne(() => User, (User) => User.uid, { cascade: true })
-  @JoinColumn({ name: 'uid' })
+  // @ManyToOne(() => User, (User) => User.uid, { cascade: true })
+  // @JoinColumn({ name: 'uid' })
+  @Column({ type: 'int', name: 'uid', nullable: true })
   uid: number;
 
   @Column({ type: 'varchar', name: 'license_plate', nullable: false })
