@@ -9,11 +9,13 @@ spec:
   selector:
     app: iconnect_api
     tier: mysql
+  sessionAffinity: ClientIP
+  sessionAffinityConfig:
+    clientIP:
+      timeoutSeconds: 10800
   ports:
     - port: 3306
-      targetPort: 3306
-      nodePort: 30000
-  type: NodePort
+  type: ClusterIP
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -36,8 +38,13 @@ spec:
     spec:
       containers:
         - name: iconnect-database
-          image: superpumpkin/iconnect_database:1.0.0
+          image: superpumpkin/iconnect_database:1.0.1
           env:
+            - name: MYSQL_ROOT_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-pass
+                  key: username
             - name: MYSQL_ROOT_PASSWORD
               valueFrom:
                 secretKeyRef:

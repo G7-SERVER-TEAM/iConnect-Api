@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: area_service
+  name: area-service
   namespace: default
   labels:
-    app: iConnect_Api
+    app: iconnect_api
 spec:
   selector:
-    app: iConnect_Api
-    tier: area_service
+    app: iconnect_api
+    tier: area-service
   sessionAffinity: ClientIP
   sessionAffinityConfig:
     clientIP:
@@ -20,31 +20,62 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: auth_service
+  name: area-service
   labels:
-    app: iConnect_Api
+    app: iconnect_api
 spec:
   selector:
     matchLabels:
-      app: iConnect_Api
-      tier: area_service
+      app: iconnect_api
+      tier: area-service
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app: iConnect_Api
-        tier: area_service
+        app: iconnect_api
+        tier: area-service
     spec:
       containers:
-      - image: superpumpkin/iconnect_service:1.0.2
-        name: area_service
-        ports:
-        - containerPort: 8082
-        resources:
-          request:
-            memory: "64Mi"
-            cpu: "250m"
-          limits:
-            memory: "128Mi"
-            cpu: "500m"
+        - image: superpumpkin/iconnect_service:1.1.0
+          name: area-service
+          command: ["npm", "run", "start:dev", "area"]
+          env:
+            - name: JWT_SECRET
+              value: "8efc953e5129a721a0c29bab50e8f06d828f4e74155b4d38104014737213d818"
+            - name: JWT_EXPIRATION
+              value: "10800"
+            - name: host
+              value: "iconnect-database"
+            - name: port
+              value: "3306"
+            - name: username
+              value: "backend"
+            - name: password
+              value: "P@ssw0rd"
+            - name: database
+              value: "iConnect"
+            - name: ENCRYPT_SALT
+              value: "4d00e4b03f3ce37883e8acfe1680b2aee4f68cfcc5c86e994308208e6531c70e"
+            - name: UPLOAD_LOCATION
+              value: "./apps/auth/src/news/images"
+            - name: MAX_FILE_SIZE
+              value: "5"
+          ports:
+            - containerPort: 8082
+          resources:
+            limits:
+              memory: "2Gi"
+              cpu: "1"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 8082
+            initialDelaySeconds: 30
+            periodSeconds: 10
