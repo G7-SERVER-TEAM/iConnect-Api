@@ -1,12 +1,4 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  JoinColumn,
-  ManyToOne,
-} from 'typeorm';
-import { Role } from '../../role/entities/role.entity';
-import { Area } from '../../../../area/src/area/entities/area.entity';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
 /* 
   User Structure
@@ -18,8 +10,7 @@ export class User {
   @PrimaryGeneratedColumn('increment')
   uid: number;
 
-  @ManyToOne(() => Role, (Role) => Role.id, { cascade: true })
-  @JoinColumn({ name: 'role_id' })
+  @Column({ type: 'int', name: 'role_id', nullable: false })
   role_id: number;
 
   @Column({ type: 'varchar', length: 30 })
@@ -37,7 +28,6 @@ export class User {
   @Column({ type: 'varchar', length: 10 })
   phone_number: string;
 
-  @ManyToOne(() => Area, (Area) => Area.area_id, { cascade: true })
-  @JoinColumn({ name: 'area' })
+  @Column({ type: 'int', name: 'area', nullable: true })
   area: number;
 }

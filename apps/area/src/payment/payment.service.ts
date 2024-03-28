@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Payment } from './entities/payment.entity';
-import { Repository } from 'typeorm';
+import { Between, Repository } from 'typeorm';
 import { Status } from './enum/status.enum';
 import { User } from '../../../user/src/user/entities/user.entity';
 import { Transaction } from '../transaction/entities/transaction.entity';
@@ -34,6 +34,7 @@ export class PaymentService {
       payment_id: this.generatePaymentID(await this.getAllLength()),
       total_price: createPaymentDto.total_price,
       status: Status.WAITING,
+      date: new Date(),
       uid: createPaymentDto.uid,
       transaction_id: createPaymentDto.transaction_id,
     };
@@ -45,6 +46,7 @@ export class PaymentService {
       payment_id: this.generatePaymentID(await this.getAllLength()),
       total_price: createPaymentDto.total_price,
       status: Status.WAITING,
+      date: new Date(),
       uid: createPaymentDto.uid,
       transaction_id: createPaymentDto.transaction_id,
     };
@@ -114,5 +116,68 @@ export class PaymentService {
 
   remove(payment_id: string) {
     return this.paymentRepository.delete(payment_id);
+  }
+
+  isLeapYear(year: number): boolean {
+    if (year % 4 === 0) {
+      if (year % 100 === 0) {
+        return year % 400 === 0;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async calculateTotalInCome(month: number) {
+    const endDate = [0, 2, 4, 6, 7, 9, 11].includes(month)
+      ? 31
+      : month === 1 && this.isLeapYear(new Date().getFullYear())
+        ? 29
+        : !this.isLeapYear(new Date().getFullYear())
+          ? 28
+          : 30;
+    const payments: Payment[] = await this.paymentRepository.find({
+      where: {
+        date: Between(
+          new Date(new Date().getFullYear(), month, 1, 0, 0, 0, 0),
+          new Date(new Date().getFullYear(), month, endDate, 23, 59, 59, 59),
+        ),
+      },
+    });
+    let totalInCome = 0;
+    payments.forEach((payment) => {
+      totalInCome += +payment.total_price;
+    });
+    return totalInCome;
+  }
+
+  async calculateInComePerDay(month: number) {
+    const currentMonth = month === 0 ? 0 : month;
+    const endDate = [0, 2, 4, 6, 7, 9, 11].includes(month)
+      ? 31
+      : month === 1 && this.isLeapYear(new Date().getFullYear())
+        ? 29
+        : !this.isLeapYear(new Date().getFullYear())
+          ? 28
+          : 30;
+    // eslint-disable-next-line prefer-const
+    let inComePerDay = [];
+    for (let i = 1; i <= endDate; i++) {
+      let totalInComePerDay = 0;
+      const payments: Payment[] = await this.paymentRepository.find({
+        where: {
+          date: Between(
+            new Date(new Date().getFullYear(), currentMonth, i, 0, 0, 0, 0),
+            new Date(new Date().getFullYear(), currentMonth, i, 23, 59, 59, 59),
+          ),
+        },
+      });
+      console.log(payments);
+      payments.forEach((payment) => {
+        totalInComePerDay += +payment.total_price;
+      });
+      inComePerDay.push({ [i]: totalInComePerDay });
+    }
+    return inComePerDay;
   }
 }

@@ -138,6 +138,52 @@ export class TransactionController {
   })
   @ApiResponse({ status: 403, description: 'Forbidden.' })
   @ApiBearerAuth()
+  @Post('/allcomplete')
+  async findAllTransactionComplete(@Body() data: SearchHistory) {
+    return {
+      status: 201,
+      message: 'success',
+      result:
+        await this.transactionService.findAllTransactionWhenComplete(data),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/allUser')
+  async findAllUser() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.findAllUserPerYear(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/overview')
+  async sendOverview() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.showOverview(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
   @Get(':id')
   async findOne(@Param('id') id: string) {
     return {

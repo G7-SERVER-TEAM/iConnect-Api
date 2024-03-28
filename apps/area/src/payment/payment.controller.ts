@@ -145,4 +145,40 @@ export class PaymentController {
         .send('Internal Server Error');
     }
   }
+
+  @ApiResponse({
+    status: 200,
+    description: 'SUCCESS',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiBearerAuth()
+  @Get('/total/income/:month')
+  async getTotalInCome(@Param('month') month: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.paymentService.calculateTotalInCome(+month),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'SUCCESS',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden',
+  })
+  @ApiBearerAuth()
+  @Get('/total/income/day/:month')
+  async getTotalInComePerDay(@Param('month') month: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.paymentService.calculateInComePerDay(+month),
+    };
+  }
 }

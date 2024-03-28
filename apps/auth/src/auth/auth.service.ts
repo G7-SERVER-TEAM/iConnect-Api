@@ -29,6 +29,9 @@ export class AuthService {
   async signIn(username: string, pass: string): Promise<any> {
     const account: Account | null =
       await this.accountService.findByUsername(username);
+    if (!account) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
     const isExpired = await this.isAccessTokenExpired(account.access_token);
     const payload = isExpired
       ? { sub: account.uid, username: account.username }
@@ -48,17 +51,25 @@ export class AuthService {
       await this.accountService.updateAccessToken(account.uid, token);
     }
     await this.accountService.updateLastLogin(account.account_id, new Date());
+    const user: User = await this.userService.findByUID(account.uid);
 
     return {
       username: account.username,
       access_token: isExpired ? token : account.access_token,
       last_logged_in: account.last_logged_in,
+      role_id: user.role_id,
+      uid: account.uid,
     };
   }
 
   async signInWithEmail(email: string, pass: string): Promise<any> {
     const account: Account | null =
       await this.accountService.findByEmail(email);
+
+    console.log(account);
+    if (!account) {
+      throw new UnauthorizedException('Invalid email or password');
+    }
     const isExpired = await this.isAccessTokenExpired(account.access_token);
     const payload = isExpired ? { sub: account.uid, email: account.email } : {};
     const token = await this.jwtService.signAsync(payload);

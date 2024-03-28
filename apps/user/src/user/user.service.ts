@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -41,8 +41,61 @@ export class UserService {
     return this.userRepository.findOneBy({ uid });
   }
 
+  findByPhoneNumber(phone_number: string) {
+    return this.userRepository.findOneBy({ phone_number });
+  }
+
   @Public()
-  async createUserProfile(newUser: CreateUserDto): Promise<User | JSON> {
+  async createUserProfile(newUser: CreateUserDto) {
+    // eslint-disable-next-line prefer-const
+    let errors = {
+      email: '',
+      name: '',
+      surname: '',
+      phone_number: '',
+    };
+
+    // Validate email field
+    if (!newUser.email) {
+      errors.email = 'Email is required.';
+    } else if (!/\S+@\S+\.\S+/.test(newUser.email)) {
+      errors.email = 'Email is invalid.';
+    }
+
+    // Validate firstName field
+    if (!newUser.name) {
+      errors.name = 'First name is required.';
+    } else if (newUser.name.length < 3) {
+      errors.name = 'First name must be at least 3 characters.';
+    }
+
+    // Validate lastName field
+    if (!newUser.surname) {
+      errors.surname = 'Last name is required.';
+    } else if (newUser.surname.length < 3) {
+      errors.surname = 'Last name must be at least 3 characters.';
+    }
+
+    // Validate phone field
+    if (!newUser.phone_number) {
+      errors.phone_number = 'Phone number is required.';
+    } else if (!/^0[0-9]{1,2}[0-9]{3}[0-9]{4}$/.test(newUser.phone_number)) {
+      errors.phone_number =
+        'Phone number is invalid. Please enter a valid Thai phone number.';
+    }
+
+    // If there are validation errors, throw an error
+    if (Object.keys(errors).length > 0) {
+      if (
+        errors.email.length > 0 ||
+        errors.name.length > 0 ||
+        errors.phone_number.length > 0 ||
+        errors.surname.length > 0
+      ) {
+        throw new BadRequestException(errors);
+      }
+    }
+
     const user: User = new User();
     user.role_id = newUser.role_id;
     user.name = newUser.name;
@@ -52,7 +105,11 @@ export class UserService {
     user.area = newUser.area;
     user.phone_number = newUser.phone_number;
 
-    return await this.userRepository.save(user);
+    return {
+      status: 201,
+      message: 'success',
+      result: await this.userRepository.save(user),
+    };
   }
 
   async updateUserProfile(

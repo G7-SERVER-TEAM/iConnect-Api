@@ -11,7 +11,7 @@ import { CreatePaymentDto } from '../payment/dto/create-payment.dto';
 import { PaymentService } from '../payment/payment.service';
 import { Payment } from '../payment/entities/payment.entity';
 import { Status as PaymentStatus } from '../payment/enum/status.enum';
-import { Status as TransactionStatus } from './enum/status.enum';
+import { Status, Status as TransactionStatus } from './enum/status.enum';
 import { User } from '../../../user/src/user/entities/user.entity';
 import * as QRCode from 'qrcode';
 import * as fs from 'fs';
@@ -220,8 +220,11 @@ export class TransactionService {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
+    const updateTransaction = {
+      ...transaction,
+      price: await this.calculateTotalPrice(transaction_id),
+    };
     const user: User = await this.userService.findByUID(transaction.uid);
-    console.log(user);
     const payment: CreatePaymentDto = {
       total_price: await this.calculateTotalPrice(transaction_id),
       uid: user.uid,
@@ -229,6 +232,7 @@ export class TransactionService {
       payment_id: '',
       status: PaymentStatus.WAITING,
     };
+    await this.transactionRepository.save(updateTransaction);
     return await this.paymentService.create(payment);
   }
 
@@ -236,6 +240,10 @@ export class TransactionService {
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
+    const updateTransaction = {
+      ...transaction,
+      price: await this.calculateTotalPrice(transaction_id),
+    };
     const user: User = await this.userService.findByUID(transaction.uid);
     const payment: CreatePaymentDto = {
       total_price: await this.calculateTotalPrice(transaction_id),
@@ -244,18 +252,17 @@ export class TransactionService {
       payment_id: '',
       status: PaymentStatus.WAITING,
     };
+    await this.transactionRepository.save(updateTransaction);
     return await this.paymentService.createWithCash(payment);
   }
 
-  async getTransactionBetweenTime(
-    start_time: Date,
-    end_time: Date,
-  ): Promise<Transaction[]> {
-    return this.transactionRepository.find({
+  async getTransactionBetweenTime(start_time: Date, end_time: Date) {
+    const transaction: Transaction[] = await this.transactionRepository.find({
       where: {
         start_time: Between(start_time, end_time),
       },
     });
+    return transaction.length;
   }
 
   async findAllLength() {
@@ -317,6 +324,7 @@ export class TransactionService {
       status: createTransactionDto.status,
       start_time: createTransactionDto.start_time,
       end_time: createTransactionDto.end_time,
+      price: null,
     };
     return this.transactionRepository.save(transaction);
   }
@@ -346,6 +354,7 @@ export class TransactionService {
       status: data.status,
       start_time: data.start_time,
       end_time: null,
+      price: null,
     };
 
     const newData = {
@@ -402,5 +411,282 @@ export class TransactionService {
 
   remove(transaction_id: string) {
     return this.transactionRepository.delete(transaction_id);
+  }
+
+  async findAllTransactionWhenComplete(data: SearchHistory) {
+    const completeTransaction: Transaction[] =
+      await this.transactionRepository.find({
+        where: {
+          status: data.status,
+        },
+      });
+    return completeTransaction;
+  }
+
+  async findAllUserPerYear() {
+    const currentDate = this.getTimDescription(new Date());
+    const transactions: Transaction[] = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(currentDate.year, 0, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 11, 31, 23, 59, 59, 59),
+        ),
+      },
+    });
+    // eslint-disable-next-line prefer-const
+    let totalUser = [];
+    transactions.forEach((transaction) => {
+      if (!totalUser.includes(transaction.uid)) totalUser.push(transaction.uid);
+    });
+    return totalUser.length;
+  }
+
+  isLeapYear(year: number): boolean {
+    if (year % 4 === 0) {
+      if (year % 100 === 0) {
+        return year % 400 === 0;
+      }
+      return true;
+    }
+    return false;
+  }
+
+  async showOverview() {
+    const currentDate = this.getTimDescription(new Date());
+
+    const result = {
+      January: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 0, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 0, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 0, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 0, 31, 23, 59, 59, 59),
+        ),
+      },
+      February: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 1, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 1, 29, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 1, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 1, 29, 23, 59, 59, 59),
+        ),
+      },
+      March: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 2, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 2, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 2, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 2, 31, 23, 59, 59, 59),
+        ),
+      },
+      April: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 3, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 3, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 3, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 3, 30, 23, 59, 59, 59),
+        ),
+      },
+      May: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 4, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 4, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 4, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 4, 31, 23, 59, 59, 59),
+        ),
+      },
+      June: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 5, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 5, 30, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 5, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 5, 30, 23, 59, 59, 59),
+        ),
+      },
+      July: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 6, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 6, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 6, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 6, 31, 23, 59, 59, 59),
+        ),
+      },
+      August: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 7, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 7, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 7, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 7, 31, 23, 59, 59, 59),
+        ),
+      },
+      September: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 8, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 8, 30, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 8, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 8, 30, 23, 59, 59, 59),
+        ),
+      },
+      October: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 9, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 9, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 9, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 9, 31, 23, 59, 59, 59),
+        ),
+      },
+      November: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 10, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 10, 30, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 10, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 10, 30, 23, 59, 59, 59),
+        ),
+      },
+      December: {
+        lastYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year - 1, 11, 1, 0, 0, 0, 0),
+          new Date(currentDate.year - 1, 11, 31, 23, 59, 59, 59),
+        ),
+        currentYear: await this.getTransactionBetweenTime(
+          new Date(currentDate.year, 11, 1, 0, 0, 0, 0),
+          new Date(currentDate.year, 11, 31, 23, 59, 59, 59),
+        ),
+      },
+    };
+    return result;
+  }
+
+  async getAllTransactionPerHour() {
+    // eslint-disable-next-line prefer-const
+    let transactions = [];
+    for (let i = 0; i < 24; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      transactions.push({ [i]: transaction });
+    }
+    return transactions;
+  }
+
+  async getMaxTransactionPerTime() {
+    let time = 0;
+    let maxTransaction = 0;
+    for (let i = 0; i < 24; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      if (transaction.length > maxTransaction) {
+        time = new Date().getHours();
+        maxTransaction = transaction.length;
+      }
+    }
+    return {
+      time: time < 10 ? `0${time}.00` : `${time}.00`,
+      transaction: maxTransaction,
+    };
+  }
+
+  async getMinTransactionPerTime() {
+    let time = 0;
+    let minTransaction = Number.MAX_VALUE;
+    for (let i = 0; i < 24; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      if (transaction.length < minTransaction) {
+        time = new Date().getHours();
+        minTransaction = transaction.length;
+      }
+    }
+    return {
+      time: time < 10 ? `0${time}.00` : `${time}.00`,
+      transaction: minTransaction,
+    };
   }
 }

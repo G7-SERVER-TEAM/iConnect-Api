@@ -41,6 +41,26 @@ export class UserController {
     return res;
   }
 
+  @Public()
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/phone/:phone')
+  async findByPhone(@Param('phone') phone: string) {
+    const user: User | null = await this.userService.findByPhoneNumber(phone);
+    const res: JSON = <JSON>(<unknown>{
+      status: 200,
+      message: 'success',
+      findBy: 'email',
+      result:
+        user === null ? 'Phone is ready for use.' : 'Phone already exists.',
+    });
+    return res;
+  }
+
   @ApiResponse({
     status: 200,
     description: 'OK.',
@@ -82,12 +102,7 @@ export class UserController {
   })
   @Post('/profile/create')
   async createProfile(@Body() createUserDto: CreateUserDto) {
-    const res: JSON = <JSON>(<unknown>{
-      status: 201,
-      message: 'success',
-      result: await this.userService.createUserProfile(createUserDto),
-    });
-    return res;
+    return await this.userService.createUserProfile(createUserDto);
   }
 
   @ApiResponse({
