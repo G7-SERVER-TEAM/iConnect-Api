@@ -59,6 +59,7 @@ export class AuthService {
       last_logged_in: account.last_logged_in,
       role_id: user.role_id,
       uid: account.uid,
+      area: user.area,
     };
   }
 

@@ -101,6 +101,14 @@ export class AreaService {
     return this.areaRepository.findOneBy({ area_id });
   }
 
+  getPriceById(price_id: number): Promise<Price | null> {
+    return this.priceRepository.findOne({
+      where: {
+        price_id: price_id,
+      },
+    });
+  }
+
   createArea(location: CreateLocationDto): Promise<Area> {
     return this.areaRepository.save(location);
   }

@@ -86,6 +86,21 @@ export class AreaController {
   }
 
   @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/price/:id')
+  async findPriceById(@Param('id') id: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.areaService.getPriceById(+id),
+    };
+  }
+
+  @ApiResponse({
     status: 201,
     description: 'CREATE',
   })
