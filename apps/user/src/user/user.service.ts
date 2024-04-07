@@ -119,20 +119,38 @@ export class UserService {
     const user: User = new User();
     user.uid = uid;
     user.name =
-      updateUser.name || (await this.userRepository.findOneBy({ uid }))!.name;
+      updateUser.name !== ''
+        ? updateUser.name
+        : (await this.userRepository.findOneBy({ uid }))!.name;
     user.surname =
-      updateUser.surname ||
-      (await this.userRepository.findOneBy({ uid }))!.surname;
+      updateUser.surname !== ''
+        ? updateUser.surname
+        : (await this.userRepository.findOneBy({ uid }))!.surname;
     user.birth_date =
-      updateUser.birth_date ||
-      (await this.userRepository.findOneBy({ uid }))!.birth_date;
+      updateUser.birth_date !==
+      (await (
+        await this.userRepository.findOneBy({ uid })!
+      ).birth_date)
+        ? updateUser.birth_date
+        : (await this.userRepository.findOneBy({ uid }))!.birth_date;
     user.email =
-      updateUser.email || (await this.userRepository.findOneBy({ uid }))!.email;
+      updateUser.email !== ''
+        ? updateUser.email
+        : (await this.userRepository.findOneBy({ uid }))!.email;
     user.area =
-      updateUser.area || (await this.userRepository.findOneBy({ uid }))!.area;
+      updateUser.area !==
+      (await (
+        await this.userRepository.findOneBy({ uid })!
+      ).area)
+        ? updateUser.area
+        : (await this.userRepository.findOneBy({ uid }))!.area;
     user.role_id =
-      updateUser.role_id ||
-      (await this.userRepository.findOneBy({ uid }))!.role_id;
+      updateUser.role_id !==
+      (await (
+        await this.userRepository.findOneBy({ uid })!
+      ).role_id)
+        ? updateUser.role_id
+        : (await this.userRepository.findOneBy({ uid }))!.role_id;
     return this.userRepository.save(user);
   }
 

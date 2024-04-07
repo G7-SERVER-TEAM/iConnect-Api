@@ -3,7 +3,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Transaction } from './entities/transaction.entity';
-import { Between, Repository } from 'typeorm';
+import { Between, MoreThanOrEqual, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Area } from '../area/entities/area.entity';
 import { Price } from '../area/entities/price.entity';
@@ -99,7 +99,9 @@ export class TransactionService {
       JSON.parse(values);
 
     const start_time = transaction.start_time;
-    const end_time = new Date();
+    const endTimeMilliseconds = new Date().getTime();
+    const UTC7OffsetMilliseconds = 7 * 60 * 60 * 1000;
+    const end_time = new Date(endTimeMilliseconds + UTC7OffsetMilliseconds);
 
     console.log({ start_time, end_time });
 
@@ -316,14 +318,27 @@ export class TransactionService {
   }
 
   async create(createTransactionDto: CreateTransactionDto) {
+    const startTimeMilliseconds = new Date(
+      createTransactionDto.start_time,
+    ).getTime();
+    const endTimeMilliseconds = new Date(
+      createTransactionDto.end_time,
+    ).getTime();
+    const UTC7OffsetMilliseconds = 7 * 60 * 60 * 1000;
+    const startDateInUTC7 = new Date(
+      startTimeMilliseconds + UTC7OffsetMilliseconds,
+    );
+    const endDateInUTC7 = new Date(
+      endTimeMilliseconds + UTC7OffsetMilliseconds,
+    );
     const transaction: Transaction = {
       transaction_id: this.generateTransactionID(await this.findAllLength()),
       area_id: createTransactionDto.area_id,
       uid: createTransactionDto.uid,
       license_plate: createTransactionDto.license_plate,
       status: createTransactionDto.status,
-      start_time: createTransactionDto.start_time,
-      end_time: createTransactionDto.end_time,
+      start_time: startDateInUTC7,
+      end_time: endDateInUTC7,
       price: null,
     };
     return this.transactionRepository.save(transaction);
@@ -344,6 +359,12 @@ export class TransactionService {
   }
 
   async generateQRCode(data: LPRData) {
+    const startTimeMilliseconds = new Date(data.start_time).getTime();
+
+    const UTC7OffsetMilliseconds = 7 * 60 * 60 * 1000;
+    const startDateInUTC7 = new Date(
+      startTimeMilliseconds + UTC7OffsetMilliseconds,
+    );
     const transaction: Transaction = {
       transaction_id: await this.generateTransactionID(
         await this.findAllLength(),
@@ -352,7 +373,7 @@ export class TransactionService {
       uid: null,
       license_plate: data.license_plate,
       status: data.status,
-      start_time: data.start_time,
+      start_time: startDateInUTC7,
       end_time: null,
       price: null,
     };
@@ -398,6 +419,9 @@ export class TransactionService {
     transaction_id: string,
     updateTransactionDto: UpdateTransactionDto,
   ) {
+    const endTimeMilliseconds = new Date(
+      updateTransactionDto.end_time,
+    ).getTime();
     const transaction: Transaction = await this.transactionRepository.findOneBy(
       { transaction_id },
     );
@@ -641,7 +665,7 @@ export class TransactionService {
         },
       });
       if (transaction.length > maxTransaction) {
-        time = new Date().getHours();
+        time = i;
         maxTransaction = transaction.length;
       }
     }
@@ -679,8 +703,8 @@ export class TransactionService {
           ),
         },
       });
-      if (transaction.length < minTransaction) {
-        time = new Date().getHours();
+      if (transaction.length < minTransaction && transaction.length !== 0) {
+        time = i;
         minTransaction = transaction.length;
       }
     }
@@ -688,5 +712,418 @@ export class TransactionService {
       time: time < 10 ? `0${time}.00` : `${time}.00`,
       transaction: minTransaction,
     };
+  }
+
+  async getCurrentUserInDay() {
+    // eslint-disable-next-line prefer-const
+    let currentUser = [];
+    for (let i = 0; i < 24; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      transaction.forEach((txn) => {
+        currentUser.push(txn.uid);
+      });
+    }
+    return Array.from(new Set(currentUser)).length;
+  }
+
+  async getMaxUsageTransaction() {
+    // eslint-disable-next-line prefer-const
+    let maxUsageTransaction = 0;
+    for (let i = 0; i < 24; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      transaction.forEach((txn) => {
+        const differentTime = this.calculateDifferentTime(
+          txn.start_time,
+          txn.end_time,
+        );
+        if (differentTime > maxUsageTransaction)
+          maxUsageTransaction = differentTime;
+      });
+    }
+    return Math.floor(maxUsageTransaction);
+  }
+
+  async getTransactionPerHour() {
+    // eslint-disable-next-line prefer-const
+    let averageTransactionPerHour = [];
+    for (let i = 9; i < 22; i++) {
+      const transaction: Transaction[] = await this.transactionRepository.find({
+        where: {
+          start_time: Between(
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              0,
+              0,
+              0,
+            ),
+            new Date(
+              new Date().getFullYear(),
+              new Date().getMonth(),
+              new Date().getDate(),
+              i,
+              59,
+              59,
+              59,
+            ),
+          ),
+        },
+      });
+      averageTransactionPerHour.push(transaction.length);
+    }
+    return averageTransactionPerHour;
+  }
+
+  async getNumberOfCurrentTransactionAfterUpdatePrice(id) {
+    const price: Price = await this.priceRepository.findOne({
+      where: { price_id: id },
+    });
+    const values: string = JSON.stringify(price.after);
+
+    const setting: { start_time: string; configuration: any[] } =
+      JSON.parse(values);
+
+    const datePickUp = this.getTimDescription(new Date(setting.start_time));
+    const currentDate = new Date();
+    const transactionBeforeNine = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            1,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtNine = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            4,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtTwelve = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            7,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtFifteen = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            10,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtEighteen = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            currentDate.getFullYear(),
+            currentDate.getMonth(),
+            currentDate.getDate(),
+            13,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    return {
+      9: 0,
+      12: transactionAtNine.length - transactionBeforeNine.length,
+      15: transactionAtTwelve.length - transactionAtNine.length,
+      18: transactionAtFifteen.length - transactionAtTwelve.length,
+      21: transactionAtEighteen.length - transactionAtFifteen.length,
+    };
+  }
+
+  async getNumberOfCurrentTransactionBeforeUpdatePrice(id) {
+    const price: Price = await this.priceRepository.findOne({
+      where: { price_id: id },
+    });
+    const values: string = JSON.stringify(price.before);
+
+    const setting: { start_time: string; configuration: any[] } =
+      JSON.parse(values);
+
+    const datePickUp = this.getTimDescription(new Date(setting.start_time));
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const transactionBeforeNine = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            1,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtNine = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            4,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtTwelve = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            7,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtFifteen = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            10,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    const transactionAtEighteen = await this.transactionRepository.find({
+      where: {
+        start_time: Between(
+          new Date(
+            datePickUp.year,
+            datePickUp.month,
+            datePickUp.day,
+            2,
+            0,
+            0,
+            0,
+          ),
+          new Date(
+            yesterday.getFullYear(),
+            yesterday.getMonth(),
+            yesterday.getDate(),
+            13,
+            59,
+            59,
+            59,
+          ),
+        ),
+      },
+    });
+    return {
+      9: 0,
+      12: transactionAtNine.length - transactionBeforeNine.length,
+      15: transactionAtTwelve.length - transactionAtNine.length,
+      18: transactionAtFifteen.length - transactionAtTwelve.length,
+      21: transactionAtEighteen.length - transactionAtFifteen.length,
+    };
+  }
+
+  async getPriceConfigurationRate() {
+    const price: Price = await this.priceRepository.findOne({
+      where: {
+        price_id: 1,
+      },
+    });
+    const values: string = JSON.stringify(price.after);
+
+    const setting: { start_time: string; configuration: any[] } =
+      JSON.parse(values);
+
+    const result: number[] = Array(12).fill(0);
+
+    for (const item of setting.configuration) {
+      const rate: number = parseInt(item.rate);
+      const startHour: number = parseInt(item.start_hour);
+      const endHour: number = parseInt(item.end_hour);
+      for (let i = startHour; i < endHour && i < 12; i++) {
+        result[i] = rate;
+      }
+    }
+    return result;
   }
 }

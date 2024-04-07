@@ -351,4 +351,130 @@ export class TransactionController {
       result: await this.transactionService.remove(id),
     };
   }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/update/after/:id')
+  async getCurrentAfterUpdatePrice(@Param('id') id: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result:
+        await this.transactionService.getNumberOfCurrentTransactionAfterUpdatePrice(
+          id,
+        ),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/update/before/:id')
+  async getCurrentBeforeUpdatePrice(@Param('id') id: string) {
+    return {
+      status: 200,
+      message: 'success',
+      result:
+        await this.transactionService.getNumberOfCurrentTransactionBeforeUpdatePrice(
+          id,
+        ),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/max/transaction')
+  async getMaxTransactionPerTime() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getMaxTransactionPerTime(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/min/transaction')
+  async getMinTransactionPerTime() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getMinTransactionPerTime(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/user')
+  async getCurrentUserInDay() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getCurrentUserInDay(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/max/usage')
+  async getMaxUsageTransaction() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getMaxUsageTransaction(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/usage/transaction')
+  async getTransactionPerHour() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getTransactionPerHour(),
+    };
+  }
+
+  @ApiResponse({
+    status: 200,
+    description: 'OK.',
+  })
+  @ApiResponse({ status: 403, description: 'Forbidden.' })
+  @ApiBearerAuth()
+  @Get('/current/configuration/rate')
+  async getPriceConfigurationRate() {
+    return {
+      status: 200,
+      message: 'success',
+      result: await this.transactionService.getPriceConfigurationRate(),
+    };
+  }
 }

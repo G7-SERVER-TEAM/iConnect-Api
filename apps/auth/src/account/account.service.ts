@@ -66,6 +66,7 @@ export class AccountService {
           ...user,
           username: account?.username,
           area_name: area?.area_name,
+          account_id: account?.account_id,
         };
       }),
     );
