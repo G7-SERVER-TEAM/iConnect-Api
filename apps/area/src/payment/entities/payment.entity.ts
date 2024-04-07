@@ -25,6 +25,9 @@ export class Payment {
   })
   status: Status;
 
+  @Column({ type: 'timestamp', name: 'date', nullable: true })
+  date: Date;
+
   @ManyToOne(() => User, (User) => User.uid, { cascade: true })
   @JoinColumn({ name: 'uid' })
   uid: number;

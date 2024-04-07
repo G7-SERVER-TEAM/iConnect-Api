@@ -9,7 +9,6 @@ import { District } from './district.entity';
 import { City } from './city.entity';
 import { Province } from './province.entity';
 import { ZipCode } from './zip.entity';
-import { Price } from './price.entity';
 
 @Entity()
 export class Area {
@@ -19,8 +18,7 @@ export class Area {
   @Column({ type: 'varchar', length: 255 })
   area_name: string;
 
-  @ManyToOne(() => Price, (Price) => Price.price_id, { cascade: true })
-  @JoinColumn({ name: 'price_id', referencedColumnName: 'price_id' })
+  @Column({ type: 'int', name: 'price_id', nullable: false })
   price_id: number;
 
   @Column({ type: 'varchar', length: 255 })

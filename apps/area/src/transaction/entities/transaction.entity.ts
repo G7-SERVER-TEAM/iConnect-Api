@@ -32,4 +32,7 @@ export class Transaction {
 
   @Column({ type: 'timestamp', name: 'end_time', nullable: true })
   end_time: Date;
+
+  @Column({ type: 'int', name: 'price', nullable: true })
+  price: number;
 }
